@@ -544,8 +544,13 @@ export class ImportService {
 		const tablePrefix = this.dataSource.options.entityPrefix || '';
 		const migrationsTableName = `${tablePrefix}migrations`;
 
+		// Use TOP 1 for MSSQL, LIMIT 1 for others
+		const isMssql = (this.dataSource.options.type as string) === 'mssql';
+		const limitSyntax = isMssql ? 'TOP 1' : '';
+		const limitSuffix = isMssql ? '' : 'LIMIT 1';
+		
 		const dbMigrations = await this.dataSource.query(
-			`SELECT * FROM ${this.dataSource.driver.escape(migrationsTableName)} ORDER BY timestamp DESC LIMIT 1`,
+			`SELECT ${limitSyntax} * FROM ${this.dataSource.driver.escape(migrationsTableName)} ORDER BY timestamp DESC ${limitSuffix}`.trim(),
 		);
 
 		if (dbMigrations.length === 0) {

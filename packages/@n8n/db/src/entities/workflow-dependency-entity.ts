@@ -8,6 +8,8 @@ import {
 	Relation,
 } from '@n8n/typeorm';
 
+import { jsonColumnType } from './abstract-entity';
+
 import { WithCreatedAt } from './abstract-entity';
 import type { WorkflowEntity } from './workflow-entity';
 
@@ -52,7 +54,7 @@ export class WorkflowDependency extends WithCreatedAt {
 	 * Additional information about the dependency, interpreted based on the type.
 	 * E.g., for 'nodeType' it could be the node ID, for 'webhookPath' the webhook ID.
 	 */
-	@Column({ type: 'json', nullable: true })
+	@Column({ type: jsonColumnType, nullable: true })
 	dependencyInfo: Record<string, unknown> | null;
 
 	/**

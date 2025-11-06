@@ -91,7 +91,7 @@ export class WorkflowEntity extends WithTimestampsAndStringId implements IWorkfl
 	statistics: WorkflowStatistics[];
 
 	@Column({
-		type: dbType === 'sqlite' ? 'text' : 'json',
+		type: dbType === 'sqlite' || dbType === 'mssqldb' ? 'text' : 'json',
 		nullable: true,
 		transformer: sqlite.jsonColumn,
 	})

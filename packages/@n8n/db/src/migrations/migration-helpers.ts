@@ -93,6 +93,7 @@ const dbType = globalConfig.database.type;
 const isMysql = ['mariadb', 'mysqldb'].includes(dbType);
 const isSqlite = dbType === 'sqlite';
 const isPostgres = dbType === 'postgresdb';
+const isMssql = dbType === 'mssqldb';
 const dbName = globalConfig.database[dbType === 'mariadb' ? 'mysqldb' : dbType].database;
 const tablePrefix = globalConfig.database.tablePrefix;
 
@@ -103,6 +104,7 @@ const createContext = (queryRunner: QueryRunner, migration: Migration): Migratio
 	isMysql,
 	isSqlite,
 	isPostgres,
+	isMssql,
 	dbName,
 	migrationName: migration.name,
 	queryRunner,
@@ -138,7 +140,12 @@ const createContext = (queryRunner: QueryRunner, migration: Migration): Migratio
 		if (query.trim().endsWith(';')) query = query.trim().slice(0, -1);
 
 		do {
-			batchedQuery = `${query} LIMIT ${limit} OFFSET ${offset}`;
+			// Use MSSQL-compatible OFFSET/FETCH syntax for mssqldb
+			if (dbType === 'mssqldb') {
+				batchedQuery = `${query} OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
+			} else {
+				batchedQuery = `${query} LIMIT ${limit} OFFSET ${offset}`;
+			}
 			batchedQueryResults = (await queryRunner.query(batchedQuery)) as T[];
 			// pass a copy to prevent errors from mutation
 			await operation([...batchedQueryResults]);

@@ -95,7 +95,28 @@ export class WorkflowStatisticsRepository extends Repository<WorkflowStatistics>
 				)) as Array<{ count: number }>;
 
 				return queryResult[0].count === 1 ? 'insert' : 'update';
+			} else if (dbType === 'mssqldb') {
+				// MSSQL uses MERGE instead of ON CONFLICT/ON DUPLICATE KEY
+				// Uses OUTPUT instead of RETURNING
+				const queryResult = (await this.query(
+					`MERGE ${escapedTableName} AS target
+					USING (SELECT ? AS name, ? AS workflowId) AS source
+					ON target.name = source.name AND target.workflowId = source.workflowId
+					WHEN MATCHED THEN
+						UPDATE SET 
+							count = target.count + 1,
+							rootCount = target.rootCount + ?,
+							latestEvent = CURRENT_TIMESTAMP
+					WHEN NOT MATCHED THEN
+						INSERT (count, rootCount, name, workflowId, latestEvent)
+						VALUES (1, ?, source.name, source.workflowId, CURRENT_TIMESTAMP)
+					OUTPUT INSERTED.count;`,
+					[eventName, workflowId, rootCountIncrement, rootCountIncrement],
+				)) as Array<{ count: number }>;
+
+				return queryResult[0].count === 1 ? 'insert' : 'update';
 			} else {
+				// MySQL/MariaDB (mssqldb is handled separately above)
 				const queryResult = (await this.query(
 					`INSERT INTO ${escapedTableName} (count, rootCount, name, workflowId, latestEvent)
 					VALUES (1, ?, ?, ?, NOW())

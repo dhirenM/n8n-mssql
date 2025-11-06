@@ -3,7 +3,7 @@
  */
 export function buildWorkflowsByNodesQuery(
 	nodeTypes: string[],
-	dbType: 'postgresdb' | 'mysqldb' | 'mariadb' | 'sqlite',
+	dbType: 'postgresdb' | 'mysqldb' | 'mariadb' | 'mssqldb' | 'sqlite',
 ) {
 	let whereClause: string;
 
@@ -23,6 +23,22 @@ export function buildWorkflowsByNodesQuery(
 				.map(
 					(_, i) =>
 						`JSON_SEARCH(JSON_EXTRACT(workflow.nodes, '$[*].type'), 'one', :nodeType${i}) IS NOT NULL`,
+				)
+				.join(' OR ');
+
+			whereClause = `(${conditions})`;
+
+			nodeTypes.forEach((nodeType, index) => {
+				parameters[`nodeType${index}`] = nodeType;
+			});
+			break;
+		}
+		case 'mssqldb': {
+			// MSSQL JSON support using OPENJSON
+			const conditions = nodeTypes
+				.map(
+					(_, i) =>
+						`EXISTS (SELECT 1 FROM OPENJSON(workflow.nodes) WITH (type NVARCHAR(MAX) '$.type') WHERE type = :nodeType${i})`,
 				)
 				.join(' OR ');
 

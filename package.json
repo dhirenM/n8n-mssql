@@ -130,7 +130,14 @@
       "minifaker": "patches/minifaker.patch",
       "z-vue-scan": "patches/z-vue-scan.patch",
       "@lezer/highlight": "patches/@lezer__highlight.patch",
-      "v-code-diff": "patches/v-code-diff.patch"
+      "v-code-diff": "patches/v-code-diff.patch",
+      "@n8n/typeorm": "patches/@n8n__typeorm.patch"
     }
+  },
+  "dependencies": {
+    "mssql": "10.0.2"
+  },
+  "optionalDependencies": {
+    "mssql": "10.0.2"
   }
 }

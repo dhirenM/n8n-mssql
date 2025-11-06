@@ -47,8 +47,11 @@ export class ExportService {
 		// Check if migrations table exists and export it
 		try {
 			// Test if the migrations table exists by querying it
+			const isMssql = (this.dataSource.options.type as string) === 'mssql';
+			const limitSyntax = isMssql ? 'TOP 1' : '';
+			const limitSuffix = isMssql ? '' : 'LIMIT 1';
 			await this.dataSource.query(
-				`SELECT id FROM ${this.dataSource.driver.escape(migrationsTableName)} LIMIT 1`,
+				`SELECT ${limitSyntax} id FROM ${this.dataSource.driver.escape(migrationsTableName)} ${limitSuffix}`.trim(),
 			);
 
 			this.logger.info(`\n📊 Processing system table: ${migrationsTableName}`);
@@ -143,9 +146,13 @@ export class ExportService {
 				 * typeorm repositories do not return joining table entries
 				 */
 				const formattedTableName = this.dataSource.driver.escape(tableName);
-				const pageEntities = await this.dataSource.query(
-					`SELECT ${columns} FROM ${formattedTableName} LIMIT ${pageSize} OFFSET ${offset}`,
-				);
+				// Use MSSQL-compatible OFFSET/FETCH syntax for mssql, LIMIT/OFFSET for others
+				const isMssql = (this.dataSource.options.type as string) === 'mssql';
+				const paginationSql = isMssql
+					? `SELECT ${columns} FROM ${formattedTableName} ORDER BY (SELECT NULL) OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY`
+					: `SELECT ${columns} FROM ${formattedTableName} LIMIT ${pageSize} OFFSET ${offset}`;
+				
+				const pageEntities = await this.dataSource.query(paginationSql);
 
 				// If no entities returned, we've reached the end
 				if (pageEntities.length === 0) {

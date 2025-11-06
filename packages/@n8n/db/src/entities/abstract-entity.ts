@@ -20,9 +20,10 @@ const timestampSyntax = {
 	postgresdb: 'CURRENT_TIMESTAMP(3)',
 	mysqldb: 'CURRENT_TIMESTAMP(3)',
 	mariadb: 'CURRENT_TIMESTAMP(3)',
+	mssqldb: 'CURRENT_TIMESTAMP',
 }[dbType];
 
-export const jsonColumnType = dbType === 'sqlite' ? 'simple-json' : 'json';
+export const jsonColumnType = (dbType === 'sqlite' || dbType === 'mssqldb') ? 'simple-json' : 'json';
 export const datetimeColumnType = dbType === 'postgresdb' ? 'timestamptz' : 'datetime';
 
 export function JsonColumn(options?: Omit<ColumnOptions, 'type'>) {
@@ -38,6 +39,8 @@ export function DateTimeColumn(options?: Omit<ColumnOptions, 'type'>) {
 		type: datetimeColumnType,
 	});
 }
+
+// For MSSQL, we use 'datetime' type which TypeORM will convert to 'datetime2' in the actual SQL
 const tsColumnOptions: ColumnOptions = {
 	precision: 3,
 	default: () => timestampSyntax,

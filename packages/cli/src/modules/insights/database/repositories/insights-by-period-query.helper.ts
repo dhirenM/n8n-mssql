@@ -19,7 +19,9 @@ const getDatetimeSql = ({
 }): string => {
 	// Handle "now" case
 	if (daysFromToday === 0 && !useStartOfDay) {
-		return dbType === 'sqlite' ? "datetime('now')" : 'NOW()';
+		if (dbType === 'sqlite') return "datetime('now')";
+		if (dbType === 'mssqldb') return 'GETDATE()';
+		return 'NOW()';
 	}
 
 	// SQLite
@@ -42,6 +44,17 @@ const getDatetimeSql = ({
 			return `DATE_TRUNC('day', NOW() - INTERVAL '${daysFromToday} days')`;
 		}
 		return `NOW() - INTERVAL '${daysFromToday} days'`;
+	}
+
+	// MSSQL
+	if (dbType === 'mssqldb') {
+		if (daysFromToday === 0 && useStartOfDay) {
+			return 'CAST(CAST(GETDATE() AS DATE) AS DATETIME)';
+		}
+		if (useStartOfDay) {
+			return `CAST(CAST(DATEADD(DAY, -${daysFromToday}, GETDATE()) AS DATE) AS DATETIME)`;
+		}
+		return `DATEADD(DAY, -${daysFromToday}, GETDATE())`;
 	}
 
 	// MySQL/MariaDB

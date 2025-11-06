@@ -1,0 +1,730 @@
+========================================
+
+========================================
+n8n with MSSQL Startup Script
+========================================
+
+Log file: C:\Git\n8n\n8n-mssql-startup.log
+
+Environment Variables Set:
+  DB_TYPE = mssqldb
+  DB_MSSQLDB_HOST = 10.242.218.73
+  DB_MSSQLDB_DATABASE = dmnen_test
+  DB_MSSQLDB_USER = qa
+  DB_MSSQLDB_PASSWORD = ********
+
+========================================
+Starting n8n...
+========================================
+
+Watch for:
+  ✅ 'Database type: mssqldb'
+  ✅ 'n8n ready on http://localhost:5678'
+  ❌ NO 'DB_SQLITE_POOL_SIZE' warnings
+  ❌ NO 'json data type not supported' errors
+
+Output is being logged to: C:\Git\n8n\n8n-mssql-startup.log
+You can review it anytime with: Get-Content C:\Git\n8n\n8n-mssql-startup.log
+
+
+> n8n@1.119.0 dev C:\Git\n8n\packages\cli
+> concurrently -k -n "TypeScript,Node" -c "yellow.bold,cyan.bold" "npm run watch" "nodemon --delay 1"
+
+(node:31232) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Node] [33m[nodemon] 3.0.1[39m
+[Node] [33m[nodemon] to restart at any time, enter `rs`[39m
+[Node] [33m[nodemon] watching path(s): dist\**\*[39m
+[Node] [33m[nodemon] watching extensions: js[39m
+[Node] [32m[nodemon] starting `npm start`[39m
+[TypeScript] npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "catalog". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "catalogs". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "hoist". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "link-workspace-packages". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "minimum-release-age". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "package-import-method". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "shamefully-hoist". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[TypeScript] npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+[TypeScript] 
+[TypeScript] > n8n@1.119.0 watch
+[TypeScript] > tsc-watch -p tsconfig.build.json --onCompilationComplete "tsc-alias -p tsconfig.build.json"
+[TypeScript] 
+[Node] npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalog". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalogs". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "link-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "minimum-release-age". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "package-import-method". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "shamefully-hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+[Node] 
+[Node] > n8n@1.119.0 start
+[Node] > run-script-os
+[Node] 
+[TypeScript] [2J[3J[H5:54:23 PM - Starting compilation in watch mode...
+[TypeScript] 
+[Node] (node:3472) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+[Node] (Use `node --trace-deprecation ...` to show where the warning was created)
+[Node] npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalog". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalogs". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "link-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "minimum-release-age". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "package-import-method". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "shamefully-hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+[Node] 
+[Node] > n8n@1.119.0 start:windows
+[Node] > cd bin && n8n
+[Node] 
+[Node] Initializing n8n process
+[Node] query: SELECT SCHEMA_NAME() AS "schema_name"
+[Node] n8n ready on ::, port 5678
+[Node] query: SELECT * FROM "dmnen_test"."INFORMATION_SCHEMA"."TABLES" WHERE "TABLE_NAME" = 'migrations' AND "TABLE_SCHEMA" = 'dbo'
+[Node] query: SELECT * FROM "dmnen_test"."dbo"."migrations" "migrations" ORDER BY "id" DESC
+[Node] No migrations are pending
+[Node] query: SELECT "Scope"."slug" AS "Scope_slug", "Scope"."displayName" AS "Scope_displayName", "Scope"."description" AS "Scope_description" FROM "dbo"."scope" "Scope"
+[Node] query: SELECT "Role"."slug" AS "Role_slug", "Role"."displayName" AS "Role_displayName", "Role"."description" AS "Role_description", "Role"."systemRole" AS "Role_systemRole", "Role"."roleType" AS "Role_roleType", "Role__scopes"."slug" AS "Role__scopes_slug", "Role__scopes"."displayName" AS "Role__scopes_displayName", "Role__scopes"."description" AS "Role__scopes_description" FROM "dbo"."role" "Role" LEFT JOIN "dbo"."role_scope" "Role_Role__scopes" ON "Role_Role__scopes"."roleSlug"="Role"."slug" LEFT JOIN "dbo"."scope" "Role__scopes" ON "Role__scopes"."slug"="Role_Role__scopes"."scopeSlug" WHERE (("Role"."systemRole" = @0)) -- PARAMETERS: [true]
+[Node] query: SELECT "Scope"."slug" AS "Scope_slug" FROM "dbo"."scope" "Scope"
+[Node] query: SELECT "InstalledPackages"."updatedAt" AS "InstalledPackages_updatedAt", "InstalledPackages"."createdAt" AS "InstalledPackages_createdAt", "InstalledPackages"."packageName" AS "InstalledPackages_packageName", "InstalledPackages"."installedVersion" AS "InstalledPackages_installedVersion", "InstalledPackages"."authorName" AS "InstalledPackages_authorName", "InstalledPackages"."authorEmail" AS "InstalledPackages_authorEmail", "InstalledPackages__InstalledPackages_installedNodes"."name" AS "InstalledPackages__InstalledPackages_installedNodes_name", "InstalledPackages__InstalledPackages_installedNodes"."type" AS "InstalledPackages__InstalledPackages_installedNodes_type", "InstalledPackages__InstalledPackages_installedNodes"."latestVersion" AS "InstalledPackages__InstalledPackages_installedNodes_latestVersion", "InstalledPackages__InstalledPackages_installedNodes"."package" AS "InstalledPackages__InstalledPackages_installedNodes_package" FROM "dbo"."installed_packages" "InstalledPackages" LEFT JOIN "dbo"."installed_nodes" "InstalledPackages__InstalledPackages_installedNodes" ON "InstalledPackages__InstalledPackages_installedNodes"."package"="InstalledPackages"."packageName"
+[Node] 
+[Node] There is a deprecation related to your environment variables. Please take the recommended actions to update your configuration:
+[Node]  - N8N_RUNNERS_ENABLED -> Running n8n without task runners is deprecated. Task runners will be turned on by default in a future version. Please set `N8N_RUNNERS_ENABLED=true` to enable task runners now and avoid potential issues in the future. Learn more: https://docs.n8n.io/hosting/configuration/task-runners/
+[Node] 
+[Node] Automatic license renewal is disabled. The license will not renew automatically, and access to licensed features may be lost!
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["license.cert"]
+[Node] [license SDK] Skipping renewal on init: renewOnInit is disabled in config
+[Node] [license SDK] Skipping renewal on init: autoRenewEnabled is disabled in config
+[Node] [license SDK] Skipping renewal on init: license cert is not initialized
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T01:55:49.127Z","crashed"]
+[Node] query: UPDATE "dbo"."test_run" SET "status" = @0, "errorCode" = @1, "completedAt" = @2, "updatedAt" = CURRENT_TIMESTAMP WHERE "status" IN (@3, @4) -- PARAMETERS: ["error","INTERRUPTED","2025-11-06T01:54:39.000Z","new","running"]
+[Node] query: SELECT 1
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."loadOnStartup" = @0)) -- PARAMETERS: [true]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["mfa.enforced"]
+[Node] query: SELECT 1
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.saml"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.oidc"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE "Settings"."key" IN (@0) -- PARAMETERS: ["userManagement.authenticationMethod"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.sourceControl"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.sourceControl.sshKeys"]
+[Node] query: SELECT "EventDestinations"."updatedAt" AS "EventDestinations_updatedAt", "EventDestinations"."createdAt" AS "EventDestinations_createdAt", "EventDestinations"."id" AS "EventDestinations_id", "EventDestinations"."destination" AS "EventDestinations_destination" FROM "dbo"."event_destinations" "EventDestinations"
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."status" IN (@0, @1))) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) -- PARAMETERS: ["running","unknown"]
+[Node] Version: 1.119.0
+[Node] query: SELECT "WorkflowEntity"."createdAt" AS "WorkflowEntity_createdAt", "WorkflowEntity"."id" AS "WorkflowEntity_id" FROM "dbo"."workflow_entity" "WorkflowEntity" ORDER BY "WorkflowEntity_createdAt" ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."mode" AS "ExecutionEntity_mode", "ExecutionEntity__ExecutionEntity_executionData"."data" AS "ExecutionEntity__ExecutionEntity_executionData_data", "ExecutionEntity__ExecutionEntity_executionData"."workflowData" AS "ExecutionEntity__ExecutionEntity_executionData_workflowData", "ExecutionEntity__ExecutionEntity_executionData"."executionId" AS "ExecutionEntity__ExecutionEntity_executionData_executionId", "ExecutionEntity__ExecutionEntity_metadata"."id" AS "ExecutionEntity__ExecutionEntity_metadata_id", "ExecutionEntity__ExecutionEntity_metadata"."executionId" AS "ExecutionEntity__ExecutionEntity_metadata_executionId", "ExecutionEntity__ExecutionEntity_metadata"."key" AS "ExecutionEntity__ExecutionEntity_metadata_key", "ExecutionEntity__ExecutionEntity_metadata"."value" AS "ExecutionEntity__ExecutionEntity_metadata_value" FROM "dbo"."execution_entity" "ExecutionEntity" LEFT JOIN "dbo"."execution_data" "ExecutionEntity__ExecutionEntity_executionData" ON "ExecutionEntity__ExecutionEntity_executionData"."executionId"="ExecutionEntity"."id"  LEFT JOIN "dbo"."execution_metadata" "ExecutionEntity__ExecutionEntity_metadata" ON "ExecutionEntity__ExecutionEntity_metadata"."executionId"="ExecutionEntity"."id" WHERE ( (("ExecutionEntity"."status" = @0)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_id" ASC -- PARAMETERS: ["new"]
+[Node] query: SELECT "WorkflowEntity"."id" AS "WorkflowEntity_id", "WorkflowEntity__WorkflowEntity_shared"."updatedAt" AS "WorkflowEntity__WorkflowEntity_shared_updatedAt", "WorkflowEntity__WorkflowEntity_shared"."createdAt" AS "WorkflowEntity__WorkflowEntity_shared_createdAt", "WorkflowEntity__WorkflowEntity_shared"."role" AS "WorkflowEntity__WorkflowEntity_shared_role", "WorkflowEntity__WorkflowEntity_shared"."workflowId" AS "WorkflowEntity__WorkflowEntity_shared_workflowId", "WorkflowEntity__WorkflowEntity_shared"."projectId" AS "WorkflowEntity__WorkflowEntity_shared_projectId", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."updatedAt" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_updatedAt", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."createdAt" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_createdAt", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."id" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_id", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."name" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_name", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."type" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_type", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."icon" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_icon", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."description" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_description", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."updatedAt" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_updatedAt", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."createdAt" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_createdAt", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."userId" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_userId", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."projectId" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_projectId", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."role" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_role" FROM "dbo"."workflow_entity" "WorkflowEntity" LEFT JOIN "dbo"."shared_workflow" "WorkflowEntity__WorkflowEntity_shared" ON "WorkflowEntity__WorkflowEntity_shared"."workflowId"="WorkflowEntity"."id"  LEFT JOIN "dbo"."project" "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project" ON "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."id"="WorkflowEntity__WorkflowEntity_shared"."projectId"  LEFT JOIN "dbo"."project_relation" "8b5f7e606e3e221a2d51320108d875b3684cfc8d" ON "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."projectId"="WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."id" WHERE (("WorkflowEntity"."active" = @0)) -- PARAMETERS: [true]
+[Node] 
+[Node] Editor is now accessible via:
+[Node] http://localhost:5678
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] (node:30300) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+[Node] (Use `node --trace-deprecation ...` to show where the warning was created)
+[Node] query: SELECT 1 AS "row_exists" FROM (SELECT 1 AS dummy_column) "dummy_table" WHERE EXISTS (SELECT 1 FROM "dbo"."invalid_auth_token" "InvalidAuthToken" WHERE (("InvalidAuthToken"."token" = @0))) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVERDZFNENBLTA0OTctNEE0Ni05NUUzLTdGNUNDOTI5MTMzMiIsImhhc2giOiJHZVlwZ3UvNXdlIiwiYnJvd3NlcklkIjoiaDAyQXBVcUlKTEl4NmtRYlMxSzdCbzc4TG1rcW96aXNxWUlMdnFZVStsWT0iLCJ1c2VkTWZhIjpmYWxzZSwiaWF0IjoxNzYyMzkwOTE3LCJleHAiOjE3NjI5OTU3MTd9.Y6G8RjhUo8dxK8qjf6FGd0bhxMuqAMaKpXhT9u_l3gI"]
+[Node] query: SELECT DISTINCT "distinctAlias"."User_id" AS "ids_User_id" FROM (SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE (("User"."id" = @0))) "distinctAlias" ORDER BY "User_id" ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE ( (("User"."id" = @0)) ) AND ( "User"."id" IN (@1) ) -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332","5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[TypeScript] src/controller.registry.ts[36m(7,51): error TS2305: [39mModule '"@n8n/decorators"' has no exported member 'StaticRouterMetadata'.
+[TypeScript] src/modules/mcp/mcp.oauth.controller.ts[36m(5,36): error TS2305: [39mModule '"@n8n/decorators"' has no exported member 'StaticRouterMetadata'.
+[TypeScript] 
+[TypeScript] 5:55:07 PM -[31m Found 2 errors. Watching for file changes.[39m
+[Node] query: SELECT 1
+[Node] [32m[nodemon] restarting due to changes...[39m
+[Node] [32m[nodemon] starting `npm start`[39m
+[Node] [32m[nodemon] restarting due to changes...[39m
+[Node] [32m[nodemon] starting `npm start`[39m
+[Node] npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalog". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalogs". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "link-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "minimum-release-age". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "package-import-method". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "shamefully-hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+[Node] 
+[Node] > n8n@1.119.0 start
+[Node] > run-script-os
+[Node] 
+[Node] (node:31668) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+[Node] (Use `node --trace-deprecation ...` to show where the warning was created)
+[Node] npm warn Unknown env config "auto-install-peers". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalog". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "catalogs". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "link-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "minimum-release-age". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "package-import-method". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "prefer-workspace-packages". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "shamefully-hoist". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "verify-deps-before-run". This will stop working in the next major version of npm.
+[Node] npm warn Unknown env config "_jsr-registry". This will stop working in the next major version of npm.
+[Node] 
+[Node] > n8n@1.119.0 start:windows
+[Node] > cd bin && n8n
+[Node] 
+[Node] Initializing n8n process
+[Node] query: SELECT SCHEMA_NAME() AS "schema_name"
+[Node] n8n ready on ::, port 5678
+[Node] query: SELECT * FROM "dmnen_test"."INFORMATION_SCHEMA"."TABLES" WHERE "TABLE_NAME" = 'migrations' AND "TABLE_SCHEMA" = 'dbo'
+[Node] query: SELECT * FROM "dmnen_test"."dbo"."migrations" "migrations" ORDER BY "id" DESC
+[Node] No migrations are pending
+[Node] query: SELECT "Scope"."slug" AS "Scope_slug", "Scope"."displayName" AS "Scope_displayName", "Scope"."description" AS "Scope_description" FROM "dbo"."scope" "Scope"
+[Node] query: SELECT "Role"."slug" AS "Role_slug", "Role"."displayName" AS "Role_displayName", "Role"."description" AS "Role_description", "Role"."systemRole" AS "Role_systemRole", "Role"."roleType" AS "Role_roleType", "Role__scopes"."slug" AS "Role__scopes_slug", "Role__scopes"."displayName" AS "Role__scopes_displayName", "Role__scopes"."description" AS "Role__scopes_description" FROM "dbo"."role" "Role" LEFT JOIN "dbo"."role_scope" "Role_Role__scopes" ON "Role_Role__scopes"."roleSlug"="Role"."slug" LEFT JOIN "dbo"."scope" "Role__scopes" ON "Role__scopes"."slug"="Role_Role__scopes"."scopeSlug" WHERE (("Role"."systemRole" = @0)) -- PARAMETERS: [true]
+[Node] query: SELECT "Scope"."slug" AS "Scope_slug" FROM "dbo"."scope" "Scope"
+[Node] query: SELECT "InstalledPackages"."updatedAt" AS "InstalledPackages_updatedAt", "InstalledPackages"."createdAt" AS "InstalledPackages_createdAt", "InstalledPackages"."packageName" AS "InstalledPackages_packageName", "InstalledPackages"."installedVersion" AS "InstalledPackages_installedVersion", "InstalledPackages"."authorName" AS "InstalledPackages_authorName", "InstalledPackages"."authorEmail" AS "InstalledPackages_authorEmail", "InstalledPackages__InstalledPackages_installedNodes"."name" AS "InstalledPackages__InstalledPackages_installedNodes_name", "InstalledPackages__InstalledPackages_installedNodes"."type" AS "InstalledPackages__InstalledPackages_installedNodes_type", "InstalledPackages__InstalledPackages_installedNodes"."latestVersion" AS "InstalledPackages__InstalledPackages_installedNodes_latestVersion", "InstalledPackages__InstalledPackages_installedNodes"."package" AS "InstalledPackages__InstalledPackages_installedNodes_package" FROM "dbo"."installed_packages" "InstalledPackages" LEFT JOIN "dbo"."installed_nodes" "InstalledPackages__InstalledPackages_installedNodes" ON "InstalledPackages__InstalledPackages_installedNodes"."package"="InstalledPackages"."packageName"
+[Node] 
+[Node] There is a deprecation related to your environment variables. Please take the recommended actions to update your configuration:
+[Node]  - N8N_RUNNERS_ENABLED -> Running n8n without task runners is deprecated. Task runners will be turned on by default in a future version. Please set `N8N_RUNNERS_ENABLED=true` to enable task runners now and avoid potential issues in the future. Learn more: https://docs.n8n.io/hosting/configuration/task-runners/
+[Node] 
+[Node] Automatic license renewal is disabled. The license will not renew automatically, and access to licensed features may be lost!
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["license.cert"]
+[Node] [license SDK] Skipping renewal on init: renewOnInit is disabled in config
+[Node] [license SDK] Skipping renewal on init: autoRenewEnabled is disabled in config
+[Node] [license SDK] Skipping renewal on init: license cert is not initialized
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T01:56:31.222Z","crashed"]
+[Node] query: UPDATE "dbo"."test_run" SET "status" = @0, "errorCode" = @1, "completedAt" = @2, "updatedAt" = CURRENT_TIMESTAMP WHERE "status" IN (@3, @4) -- PARAMETERS: ["error","INTERRUPTED","2025-11-06T01:55:21.000Z","new","running"]
+[Node] query: SELECT 1
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."loadOnStartup" = @0)) -- PARAMETERS: [true]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["mfa.enforced"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.saml"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.oidc"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE "Settings"."key" IN (@0) -- PARAMETERS: ["userManagement.authenticationMethod"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.sourceControl"]
+[Node] query: SELECT "Settings"."key" AS "Settings_key", "Settings"."value" AS "Settings_value", "Settings"."loadOnStartup" AS "Settings_loadOnStartup" FROM "dbo"."settings" "Settings" WHERE (("Settings"."key" = @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["features.sourceControl.sshKeys"]
+[Node] query: SELECT "EventDestinations"."updatedAt" AS "EventDestinations_updatedAt", "EventDestinations"."createdAt" AS "EventDestinations_createdAt", "EventDestinations"."id" AS "EventDestinations_id", "EventDestinations"."destination" AS "EventDestinations_destination" FROM "dbo"."event_destinations" "EventDestinations"
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."status" IN (@0, @1))) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) -- PARAMETERS: ["running","unknown"]
+[Node] Version: 1.119.0
+[Node] query: SELECT "WorkflowEntity"."createdAt" AS "WorkflowEntity_createdAt", "WorkflowEntity"."id" AS "WorkflowEntity_id" FROM "dbo"."workflow_entity" "WorkflowEntity" ORDER BY "WorkflowEntity_createdAt" ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."mode" AS "ExecutionEntity_mode", "ExecutionEntity__ExecutionEntity_executionData"."data" AS "ExecutionEntity__ExecutionEntity_executionData_data", "ExecutionEntity__ExecutionEntity_executionData"."workflowData" AS "ExecutionEntity__ExecutionEntity_executionData_workflowData", "ExecutionEntity__ExecutionEntity_executionData"."executionId" AS "ExecutionEntity__ExecutionEntity_executionData_executionId", "ExecutionEntity__ExecutionEntity_metadata"."id" AS "ExecutionEntity__ExecutionEntity_metadata_id", "ExecutionEntity__ExecutionEntity_metadata"."executionId" AS "ExecutionEntity__ExecutionEntity_metadata_executionId", "ExecutionEntity__ExecutionEntity_metadata"."key" AS "ExecutionEntity__ExecutionEntity_metadata_key", "ExecutionEntity__ExecutionEntity_metadata"."value" AS "ExecutionEntity__ExecutionEntity_metadata_value" FROM "dbo"."execution_entity" "ExecutionEntity" LEFT JOIN "dbo"."execution_data" "ExecutionEntity__ExecutionEntity_executionData" ON "ExecutionEntity__ExecutionEntity_executionData"."executionId"="ExecutionEntity"."id"  LEFT JOIN "dbo"."execution_metadata" "ExecutionEntity__ExecutionEntity_metadata" ON "ExecutionEntity__ExecutionEntity_metadata"."executionId"="ExecutionEntity"."id" WHERE ( (("ExecutionEntity"."status" = @0)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_id" ASC -- PARAMETERS: ["new"]
+[Node] query: SELECT "WorkflowEntity"."id" AS "WorkflowEntity_id", "WorkflowEntity__WorkflowEntity_shared"."updatedAt" AS "WorkflowEntity__WorkflowEntity_shared_updatedAt", "WorkflowEntity__WorkflowEntity_shared"."createdAt" AS "WorkflowEntity__WorkflowEntity_shared_createdAt", "WorkflowEntity__WorkflowEntity_shared"."role" AS "WorkflowEntity__WorkflowEntity_shared_role", "WorkflowEntity__WorkflowEntity_shared"."workflowId" AS "WorkflowEntity__WorkflowEntity_shared_workflowId", "WorkflowEntity__WorkflowEntity_shared"."projectId" AS "WorkflowEntity__WorkflowEntity_shared_projectId", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."updatedAt" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_updatedAt", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."createdAt" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_createdAt", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."id" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_id", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."name" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_name", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."type" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_type", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."icon" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_icon", "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."description" AS "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project_description", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."updatedAt" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_updatedAt", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."createdAt" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_createdAt", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."userId" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_userId", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."projectId" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_projectId", "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."role" AS "8b5f7e606e3e221a2d51320108d875b3684cfc8d_role" FROM "dbo"."workflow_entity" "WorkflowEntity" LEFT JOIN "dbo"."shared_workflow" "WorkflowEntity__WorkflowEntity_shared" ON "WorkflowEntity__WorkflowEntity_shared"."workflowId"="WorkflowEntity"."id"  LEFT JOIN "dbo"."project" "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project" ON "WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."id"="WorkflowEntity__WorkflowEntity_shared"."projectId"  LEFT JOIN "dbo"."project_relation" "8b5f7e606e3e221a2d51320108d875b3684cfc8d" ON "8b5f7e606e3e221a2d51320108d875b3684cfc8d"."projectId"="WorkflowEntity__WorkflowEntity_shared__WorkflowEntity__WorkflowEntity_shared_project"."id" WHERE (("WorkflowEntity"."active" = @0)) -- PARAMETERS: [true]
+[Node] 
+[Node] Editor is now accessible via:
+[Node] http://localhost:5678
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] (node:15256) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+[Node] (Use `node --trace-deprecation ...` to show where the warning was created)
+[Node] query: SELECT 1 AS "row_exists" FROM (SELECT 1 AS dummy_column) "dummy_table" WHERE EXISTS (SELECT 1 FROM "dbo"."invalid_auth_token" "InvalidAuthToken" WHERE (("InvalidAuthToken"."token" = @0))) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVERDZFNENBLTA0OTctNEE0Ni05NUUzLTdGNUNDOTI5MTMzMiIsImhhc2giOiJHZVlwZ3UvNXdlIiwiYnJvd3NlcklkIjoiaDAyQXBVcUlKTEl4NmtRYlMxSzdCbzc4TG1rcW96aXNxWUlMdnFZVStsWT0iLCJ1c2VkTWZhIjpmYWxzZSwiaWF0IjoxNzYyMzkwOTE3LCJleHAiOjE3NjI5OTU3MTd9.Y6G8RjhUo8dxK8qjf6FGd0bhxMuqAMaKpXhT9u_l3gI"]
+[Node] query: SELECT DISTINCT "distinctAlias"."User_id" AS "ids_User_id" FROM (SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE (("User"."id" = @0))) "distinctAlias" ORDER BY "User_id" ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE ( (("User"."id" = @0)) ) AND ( "User"."id" IN (@1) ) -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332","5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1 AS "row_exists" FROM (SELECT 1 AS dummy_column) "dummy_table" WHERE EXISTS (SELECT 1 FROM "dbo"."invalid_auth_token" "InvalidAuthToken" WHERE (("InvalidAuthToken"."token" = @0))) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVERDZFNENBLTA0OTctNEE0Ni05NUUzLTdGNUNDOTI5MTMzMiIsImhhc2giOiJHZVlwZ3UvNXdlIiwiYnJvd3NlcklkIjoiaDAyQXBVcUlKTEl4NmtRYlMxSzdCbzc4TG1rcW96aXNxWUlMdnFZVStsWT0iLCJ1c2VkTWZhIjpmYWxzZSwiaWF0IjoxNzYyMzkwOTE3LCJleHAiOjE3NjI5OTU3MTd9.Y6G8RjhUo8dxK8qjf6FGd0bhxMuqAMaKpXhT9u_l3gI"]
+[Node] query: SELECT DISTINCT "distinctAlias"."User_id" AS "ids_User_id" FROM (SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE (("User"."id" = @0))) "distinctAlias" ORDER BY "User_id" ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE ( (("User"."id" = @0)) ) AND ( "User"."id" IN (@1) ) -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332","5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT COUNT(DISTINCT(CONCAT("WorkflowStatistics"."name", '|;|', "WorkflowStatistics"."workflowId"))) AS "cnt" FROM "dbo"."workflow_statistics" "WorkflowStatistics" LEFT JOIN "dbo"."workflow_entity" "WorkflowStatistics__WorkflowStatistics_workflow" ON "WorkflowStatistics__WorkflowStatistics_workflow"."id"="WorkflowStatistics"."workflowId"  LEFT JOIN "dbo"."shared_workflow" "WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared" ON "WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared"."workflowId"="WorkflowStatistics__WorkflowStatistics_workflow"."id"  LEFT JOIN "dbo"."project" "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f" ON "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f"."id"="WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared"."projectId"  LEFT JOIN "dbo"."project_relation" "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations" ON "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations"."projectId"="e43934ccdd5ed9596091f6c0b8d4329e208a3b9f"."id"  LEFT JOIN "dbo"."role" "2eb6366739879b9ecef0fa384742114c0cbc6efe" ON "2eb6366739879b9ecef0fa384742114c0cbc6efe"."slug"="e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations"."role" WHERE (((((("WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared"."role" = @0) AND ((((("e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations"."userId" = @1) AND ((("2eb6366739879b9ecef0fa384742114c0cbc6efe"."slug" = @2))))))))) AND ("WorkflowStatistics__WorkflowStatistics_workflow"."active" = @3))) AND ("WorkflowStatistics"."name" = @4) AND ("WorkflowStatistics"."count" >= @5)) -- PARAMETERS: ["workflow:owner","5DD6E4CA-0497-4A46-95E3-7F5CC9291332","project:personalOwner",true,"production_success",5]
+[Node] query: UPDATE "dbo"."user" SET "lastActiveAt" = @0, "updatedAt" = CURRENT_TIMESTAMP WHERE "id" = @1 -- PARAMETERS: ["2025-11-05T08:00:00.000Z","5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T01:57:31.228Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T01:58:31.231Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T01:59:31.232Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:00:31.233Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:01:31.234Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:02:31.235Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:03:31.235Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:04:31.235Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:05:31.236Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:06:31.237Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:07:31.237Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:08:31.254Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:09:31.255Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:10:31.255Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:11:31.256Z","crashed"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."workflowId" AS "ExecutionEntity_workflowId" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE (("ExecutionEntity"."deletedAt" <= @0)) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 100 ROWS ONLY -- PARAMETERS: ["2025-11-06 01:10:24.956"]
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1
+[Node] query: SELECT 1 AS "row_exists" FROM (SELECT 1 AS dummy_column) "dummy_table" WHERE EXISTS (SELECT 1 FROM "dbo"."invalid_auth_token" "InvalidAuthToken" WHERE (("InvalidAuthToken"."token" = @0))) ORDER BY (SELECT NULL) OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVERDZFNENBLTA0OTctNEE0Ni05NUUzLTdGNUNDOTI5MTMzMiIsImhhc2giOiJHZVlwZ3UvNXdlIiwiYnJvd3NlcklkIjoiaDAyQXBVcUlKTEl4NmtRYlMxSzdCbzc4TG1rcW96aXNxWUlMdnFZVStsWT0iLCJ1c2VkTWZhIjpmYWxzZSwiaWF0IjoxNzYyMzkwOTE3LCJleHAiOjE3NjI5OTU3MTd9.Y6G8RjhUo8dxK8qjf6FGd0bhxMuqAMaKpXhT9u_l3gI"]
+[Node] query: SELECT DISTINCT "distinctAlias"."User_id" AS "ids_User_id" FROM (SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE (("User"."id" = @0))) "distinctAlias" ORDER BY "User_id" ASC OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT "User"."updatedAt" AS "User_updatedAt", "User"."createdAt" AS "User_createdAt", "User"."id" AS "User_id", "User"."email" AS "User_email", "User"."firstName" AS "User_firstName", "User"."lastName" AS "User_lastName", "User"."password" AS "User_password", "User"."personalizationAnswers" AS "User_personalizationAnswers", "User"."settings" AS "User_settings", "User"."disabled" AS "User_disabled", "User"."mfaEnabled" AS "User_mfaEnabled", "User"."mfaSecret" AS "User_mfaSecret", "User"."mfaRecoveryCodes" AS "User_mfaRecoveryCodes", "User"."lastActiveAt" AS "User_lastActiveAt", "User"."roleSlug" AS "User_roleSlug", "User__User_role"."updatedAt" AS "User__User_role_updatedAt", "User__User_role"."createdAt" AS "User__User_role_createdAt", "User__User_role"."slug" AS "User__User_role_slug", "User__User_role"."displayName" AS "User__User_role_displayName", "User__User_role"."description" AS "User__User_role_description", "User__User_role"."systemRole" AS "User__User_role_systemRole", "User__User_role"."roleType" AS "User__User_role_roleType", "User__User_role__User__User_role_scopes"."slug" AS "User__User_role__User__User_role_scopes_slug", "User__User_role__User__User_role_scopes"."displayName" AS "User__User_role__User__User_role_scopes_displayName", "User__User_role__User__User_role_scopes"."description" AS "User__User_role__User__User_role_scopes_description" FROM "dbo"."user" "User" LEFT JOIN "dbo"."role" "User__User_role" ON "User__User_role"."slug"="User"."roleSlug"  LEFT JOIN "dbo"."role_scope" "User__User_role_User__User_role__User__User_role_scopes" ON "User__User_role_User__User_role__User__User_role_scopes"."roleSlug"="User__User_role"."slug" LEFT JOIN "dbo"."scope" "User__User_role__User__User_role_scopes" ON "User__User_role__User__User_role_scopes"."slug"="User__User_role_User__User_role__User__User_role_scopes"."scopeSlug" WHERE ( (("User"."id" = @0)) ) AND ( "User"."id" IN (@1) ) -- PARAMETERS: ["5DD6E4CA-0497-4A46-95E3-7F5CC9291332","5DD6E4CA-0497-4A46-95E3-7F5CC9291332"]
+[Node] query: SELECT COUNT(DISTINCT(CONCAT("WorkflowStatistics"."name", '|;|', "WorkflowStatistics"."workflowId"))) AS "cnt" FROM "dbo"."workflow_statistics" "WorkflowStatistics" LEFT JOIN "dbo"."workflow_entity" "WorkflowStatistics__WorkflowStatistics_workflow" ON "WorkflowStatistics__WorkflowStatistics_workflow"."id"="WorkflowStatistics"."workflowId"  LEFT JOIN "dbo"."shared_workflow" "WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared" ON "WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared"."workflowId"="WorkflowStatistics__WorkflowStatistics_workflow"."id"  LEFT JOIN "dbo"."project" "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f" ON "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f"."id"="WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared"."projectId"  LEFT JOIN "dbo"."project_relation" "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations" ON "e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations"."projectId"="e43934ccdd5ed9596091f6c0b8d4329e208a3b9f"."id"  LEFT JOIN "dbo"."role" "2eb6366739879b9ecef0fa384742114c0cbc6efe" ON "2eb6366739879b9ecef0fa384742114c0cbc6efe"."slug"="e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations"."role" WHERE (((((("WorkflowStatistics__WorkflowStatistics_workflow__WorkflowStatistics__WorkflowStatistics_workflow_shared"."role" = @0) AND ((((("e43934ccdd5ed9596091f6c0b8d4329e208a3b9f__e43934ccdd5ed9596091f6c0b8d4329e208a3b9f_projectRelations"."userId" = @1) AND ((("2eb6366739879b9ecef0fa384742114c0cbc6efe"."slug" = @2))))))))) AND ("WorkflowStatistics__WorkflowStatistics_workflow"."active" = @3))) AND ("WorkflowStatistics"."name" = @4) AND ("WorkflowStatistics"."count" >= @5)) -- PARAMETERS: ["workflow:owner","5DD6E4CA-0497-4A46-95E3-7F5CC9291332","project:personalOwner",true,"production_success",5]
+[Node] query: SELECT 1
+[Node] query: SELECT "ExecutionEntity"."id" AS "ExecutionEntity_id", "ExecutionEntity"."waitTill" AS "ExecutionEntity_waitTill" FROM "dbo"."execution_entity" "ExecutionEntity" WHERE ( (("ExecutionEntity"."waitTill" <= @0) AND ("ExecutionEntity"."status" != @1)) ) AND ( "ExecutionEntity"."deletedAt" IS NULL ) ORDER BY "ExecutionEntity_waitTill" ASC -- PARAMETERS: ["2025-11-06T02:12:31.256Z","crashed"]
+[Node] query: SELECT 1

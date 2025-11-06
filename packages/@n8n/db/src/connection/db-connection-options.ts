@@ -11,10 +11,44 @@ import type { TlsOptions } from 'node:tls';
 import path from 'path';
 
 import { entities } from '../entities';
+import { mssqlMigrations } from '../migrations/mssqldb';
 import { mysqlMigrations } from '../migrations/mysqldb';
 import { postgresMigrations } from '../migrations/postgresdb';
 import { sqliteMigrations } from '../migrations/sqlite';
 import { subscribers } from '../subscribers';
+
+// MSSQL Connection Options (since @n8n/typeorm doesn't include SQL Server driver)
+// This is a compatible subset that will work with the mssql driver at runtime
+export interface MssqlConnectionOptions {
+	type: 'mssql';
+	server?: string;
+	host?: string;
+	port?: number;
+	database?: string;
+	username?: string;
+	password?: string;
+	schema?: string;
+	entityPrefix?: string;
+	entities?: any[];
+	subscribers?: any[];
+	migrations?: any[];
+	migrationsTableName?: string;
+	migrationsRun?: boolean;
+	synchronize?: boolean;
+	logging?: LoggerOptions;
+	maxQueryExecutionTime?: number;
+	pool?: {
+		max?: number;
+		min?: number;
+		idleTimeoutMillis?: number;
+	};
+	options?: {
+		encrypt?: boolean;
+		trustServerCertificate?: boolean;
+		enableArithAbort?: boolean;
+		connectTimeout?: number;
+	};
+}
 
 @Service()
 export class DbConnectionOptions {
@@ -24,7 +58,7 @@ export class DbConnectionOptions {
 		private readonly moduleRegistry: ModuleRegistry,
 	) {}
 
-	getOverrides(dbType: 'postgresdb' | 'mysqldb') {
+	getOverrides(dbType: 'postgresdb' | 'mysqldb' | 'mssqldb') {
 		const dbConfig = this.config[dbType];
 		return {
 			database: dbConfig.database,
@@ -35,7 +69,7 @@ export class DbConnectionOptions {
 		};
 	}
 
-	getOptions(): DataSourceOptions {
+	getOptions(): DataSourceOptions | MssqlConnectionOptions {
 		const { type: dbType } = this.config;
 		switch (dbType) {
 			case 'sqlite':
@@ -45,6 +79,8 @@ export class DbConnectionOptions {
 			case 'mariadb':
 			case 'mysqldb':
 				return this.getMysqlConnectionOptions(dbType);
+			case 'mssqldb':
+				return this.getMssqlConnectionOptions();
 			default:
 				throw new UserError('Database type currently not supported', { extra: { dbType } });
 		}
@@ -143,6 +179,42 @@ export class DbConnectionOptions {
 			poolSize: mysqlConfig.poolSize,
 			migrations: mysqlMigrations,
 			timezone: 'Z', // set UTC as default
+		};
+	}
+
+	private getMssqlConnectionOptions(): MssqlConnectionOptions {
+		const { mssqldb: mssqlConfig } = this.config;
+		const commonOptions = this.getCommonOptions();
+		
+		// MSSQL connection - based on Flowise implementation
+		// NOTE: Base schema must be created manually via n8n_schema_idempotent.sql
+		// Migrations are disabled because schema is created manually
+		return {
+			type: 'mssql',
+			host: mssqlConfig.host,
+			port: mssqlConfig.port,
+			database: mssqlConfig.database,
+			username: mssqlConfig.user,
+			password: mssqlConfig.password,
+			schema: mssqlConfig.schema,
+			entityPrefix: commonOptions.entityPrefix,
+			entities: commonOptions.entities,
+			subscribers: commonOptions.subscribers,
+			migrationsTableName: commonOptions.migrationsTableName,
+			migrationsRun: false,  // Disabled - schema created manually
+			synchronize: false,
+			maxQueryExecutionTime: commonOptions.maxQueryExecutionTime,
+			logging: commonOptions.logging,
+			pool: {
+				max: mssqlConfig.poolSize,
+			},
+			migrations: [], // Empty - schema created manually
+			options: {
+				encrypt: mssqlConfig.encrypt,
+				trustServerCertificate: mssqlConfig.trustServerCertificate,
+				enableArithAbort: true,
+				connectTimeout: mssqlConfig.connectionTimeoutMs,
+			},
 		};
 	}
 }

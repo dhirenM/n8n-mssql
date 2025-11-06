@@ -240,8 +240,13 @@ export class DataTableRepository extends Repository<DataTable> {
 		query: SelectQueryBuilder<DataTable>,
 		options: Partial<ListDataTableQueryDto>,
 	): void {
-		query.skip(options.skip ?? 0);
-		if (options.take !== undefined) query.take(options.take);
+		const skip = options.skip ?? 0;
+		const take = options.take;
+		
+		// TypeORM automatically converts .skip()/.take() to appropriate syntax for each DB
+		// MSSQL will use OFFSET/FETCH (requires ORDER BY which is set in applySorting)
+		query.skip(skip);
+		if (take !== undefined) query.take(take);
 	}
 
 	private applyDefaultSelect(query: SelectQueryBuilder<DataTable>): void {

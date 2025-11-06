@@ -69,6 +69,7 @@ export class DbRevertMigrationCommand {
 	constructor(private readonly logger: Logger) {}
 
 	async run() {
+		// Cast to any because MSSQL options may not match standard DataSourceOptions type
 		const connectionOptions: ConnectionOptions = {
 			...Container.get(DbConnectionOptions).getOptions(),
 			subscribers: [],
@@ -76,7 +77,7 @@ export class DbRevertMigrationCommand {
 			migrationsRun: false,
 			dropSchema: false,
 			logging: ['query', 'error', 'schema'],
-		};
+		} as any;
 
 		const connection = new Connection(connectionOptions);
 		await connection.initialize();

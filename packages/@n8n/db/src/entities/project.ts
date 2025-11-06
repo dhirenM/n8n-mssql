@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany } from '@n8n/typeorm';
 
-import { WithTimestampsAndStringId } from './abstract-entity';
+import { WithTimestampsAndStringId, jsonColumnType } from './abstract-entity';
 import type { ProjectRelation } from './project-relation';
 import type { SharedCredentials } from './shared-credentials';
 import type { SharedWorkflow } from './shared-workflow';
@@ -14,7 +14,7 @@ export class Project extends WithTimestampsAndStringId {
 	@Column({ type: 'varchar', length: 36 })
 	type: 'personal' | 'team';
 
-	@Column({ type: 'json', nullable: true })
+	@Column({ type: jsonColumnType, nullable: true })
 	icon: { type: 'emoji' | 'icon'; value: string } | null;
 
 	@Column({ type: 'varchar', length: 512, nullable: true })

@@ -32,7 +32,8 @@ export class DbConnection {
 		private readonly connectionOptions: DbConnectionOptions,
 		private readonly databaseConfig: DatabaseConfig,
 	) {
-		this.dataSource = new DataSource(this.options);
+		// Cast to any because @n8n/typeorm doesn't have MSSQL types, but the mssql driver will work at runtime
+		this.dataSource = new DataSource(this.options as any);
 		Container.set(DataSource, this.dataSource);
 	}
 

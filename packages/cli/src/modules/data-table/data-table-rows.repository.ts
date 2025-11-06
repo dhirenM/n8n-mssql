@@ -679,7 +679,12 @@ export class DataTableRowsRepository {
 	}
 
 	private applyPagination(query: QueryBuilder, dto: ListDataTableContentQueryDto): void {
-		query.skip(dto.skip ?? 0);
-		if (dto.take) query.take(dto.take);
+		const skip = dto.skip ?? 0;
+		const take = dto.take;
+		
+		// TypeORM should automatically convert .skip()/.take() to appropriate syntax for each DB
+		// MSSQL will use OFFSET/FETCH, others will use LIMIT/OFFSET
+		query.skip(skip);
+		if (take) query.take(take);
 	}
 }

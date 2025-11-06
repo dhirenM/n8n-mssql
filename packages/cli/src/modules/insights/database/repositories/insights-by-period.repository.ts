@@ -91,6 +91,8 @@ export class InsightsByPeriodRepository extends Repository<InsightsByPeriod> {
 			periodStartExpr = `CURRENT_DATE - INTERVAL '${maxAgeInDays} day'`;
 		} else if (dbType === 'mysqldb' || dbType === 'mariadb') {
 			periodStartExpr = `DATE_SUB(CURRENT_DATE, INTERVAL ${maxAgeInDays} DAY)`;
+		} else if (dbType === 'mssqldb') {
+			periodStartExpr = `CAST(DATEADD(DAY, -${maxAgeInDays}, CAST(GETDATE() AS DATE)) AS DATETIME)`;
 		}
 
 		return periodStartExpr;
@@ -110,6 +112,19 @@ export class InsightsByPeriodRepository extends Repository<InsightsByPeriod> {
 					: `DATE_FORMAT(periodStart, '%Y-%m-%d ${periodUnitToCompactInto === 'hour' ? '%H' : '00'}:00:00')`;
 		} else if (dbType === 'postgresdb') {
 			periodStartExpr = `DATE_TRUNC('${periodUnitToCompactInto}', ${this.escapeField('periodStart')})`;
+		} else if (dbType === 'mssqldb') {
+			// MSSQL date truncation
+			if (periodUnitToCompactInto === 'hour') {
+				periodStartExpr = `DATEADD(HOUR, DATEDIFF(HOUR, 0, ${this.escapeField('periodStart')}), 0)`;
+			} else if (periodUnitToCompactInto === 'day') {
+				periodStartExpr = `CAST(CAST(${this.escapeField('periodStart')} AS DATE) AS DATETIME)`;
+			} else if (periodUnitToCompactInto === 'week') {
+				periodStartExpr = `DATEADD(DAY, 1 - DATEPART(WEEKDAY, ${this.escapeField('periodStart')}), CAST(CAST(${this.escapeField('periodStart')} AS DATE) AS DATETIME))`;
+			} else if (periodUnitToCompactInto === 'month') {
+				periodStartExpr = `CAST(CAST(DATEADD(MONTH, DATEDIFF(MONTH, 0, ${this.escapeField('periodStart')}), 0) AS DATE) AS DATETIME)`;
+			} else if (periodUnitToCompactInto === 'year') {
+				periodStartExpr = `CAST(CAST(DATEADD(YEAR, DATEDIFF(YEAR, 0, ${this.escapeField('periodStart')}), 0) AS DATE) AS DATETIME)`;
+			}
 		}
 
 		return periodStartExpr;
@@ -282,18 +297,18 @@ export class InsightsByPeriodRepository extends Repository<InsightsByPeriod> {
 	> {
 		const cte = getDateRangesCommonTableExpressionQuery({ dbType, startDate, endDate });
 
+		// MSSQL doesn't allow GROUP BY on aliases, must use full expression
+		const periodCaseExpression = sql`
+			CASE
+				WHEN insights.periodStart >= date_ranges.start_date AND insights.periodStart < date_ranges.end_date
+				THEN 'current'
+				ELSE 'previous'
+			END
+		`;
+		
 		const rawRowsQuery = this.createQueryBuilder('insights')
 			.addCommonTableExpression(cte, 'date_ranges')
-			.select(
-				sql`
-						CASE
-							WHEN insights.periodStart >= date_ranges.start_date AND insights.periodStart < date_ranges.end_date
-							THEN 'current'
-							ELSE 'previous'
-						END
-					`,
-				'period',
-			)
+			.select(periodCaseExpression, 'period')
 			.addSelect('insights.type', 'type')
 			.addSelect('SUM(value)', 'total_value')
 			// Use a cross join with the CTE
@@ -301,7 +316,8 @@ export class InsightsByPeriodRepository extends Repository<InsightsByPeriod> {
 			.where('insights.periodStart >= date_ranges.prev_start_date')
 			.andWhere('insights.periodStart < date_ranges.end_date')
 			// Group by both period and type
-			.groupBy('period')
+			// MSSQL: Use full CASE expression instead of alias
+			.groupBy(dbType === 'mssqldb' ? periodCaseExpression : 'period')
 			.addGroupBy('insights.type');
 
 		if (projectId) {
