@@ -31,7 +31,7 @@ $env:DB_MSSQLDB_PORT = "1433"
 $env:DB_MSSQLDB_DATABASE = "dmnen_test"
 $env:DB_MSSQLDB_USER = "qa"
 $env:DB_MSSQLDB_PASSWORD = "bestqateam"
-$env:DB_MSSQLDB_SCHEMA = "dbo"
+$env:DB_MSSQLDB_SCHEMA = "n8n"
 $env:DB_MSSQLDB_POOL_SIZE = "10"
 $env:DB_MSSQLDB_CONNECTION_TIMEOUT = "20000"
 $env:DB_MSSQLDB_ENCRYPT = "false"
@@ -47,12 +47,13 @@ $env:N8N_SKIP_MIGRATIONS = "true"
 
 # Enable SQL query logging to debug errors
 $env:DB_LOGGING_ENABLED = "true"
-$env:DB_LOGGING_OPTIONS = "all"
+$env:DB_LOGGING_OPTIONS = "query"
 $env:DB_LOGGING_MAX_EXECUTION_TIME = "0"
 
 # Disable enterprise features that use LIMIT queries (temporary workaround)
 $env:N8N_LICENSE_AUTO_RENEW_ENABLED = "false"
 $env:N8N_LICENSE_AUTO_RENEW_OFFSET = "0"
+
 
 Write-Log "Environment Variables Set:" "Green"
 Write-Log "  DB_TYPE = $env:DB_TYPE" "White"
@@ -61,6 +62,10 @@ Write-Log "  DB_MSSQLDB_DATABASE = $env:DB_MSSQLDB_DATABASE" "White"
 Write-Log "  DB_MSSQLDB_USER = $env:DB_MSSQLDB_USER" "White"
 Write-Log "  DB_MSSQLDB_PASSWORD = ********" "White"
 Write-Log ""
+
+Write-Host "  N8N_SKIP_MIGRATIONS = $env:N8N_SKIP_MIGRATIONS (schema already created)" -ForegroundColor White
+Write-Host "  DB_MSSQLDB_SCHEMA = $env:DB_MSSQLDB_SCHEMA" -ForegroundColor White
+Write-Host ""
 
 Write-Log "========================================" "Cyan"
 Write-Log "Starting n8n..." "Cyan"

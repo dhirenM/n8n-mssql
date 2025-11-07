@@ -10,7 +10,7 @@ $timestamp = Get-Date -Format "yyyy-MM-dd-HHmmss"
 $versionedBackup = "$backupDir-$timestamp"
 
 # Find the TypeORM path (it might change with version updates)
-$typeormPath = Get-ChildItem -Path "C:\Git\n8n\node_modules\.pnpm" -Filter "@n8n+typeorm*" -Directory | Select-Object -First 1
+$typeormPath = Get-ChildItem -Path "C:\Git\n8n-mssql\node_modules\.pnpm" -Filter "@n8n+typeorm*" -Directory | Select-Object -First 1
 
 if (-not $typeormPath) {
     Write-Host "❌ ERROR: Could not find @n8n/typeorm in node_modules" -ForegroundColor Red

@@ -132,6 +132,9 @@
       "@lezer/highlight": "patches/@lezer__highlight.patch",
       "v-code-diff": "patches/v-code-diff.patch",
       "@n8n/typeorm": "patches/@n8n__typeorm.patch"
+    },
+    "comments": {
+      "note": "@n8n/typeorm patch is applied manually via RESTORE_TYPEORM_FIXES.ps1 script due to corrupt patch file"
     }
   },
   "dependencies": {

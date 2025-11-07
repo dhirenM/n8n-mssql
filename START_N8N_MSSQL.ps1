@@ -16,7 +16,7 @@ $env:DB_MSSQLDB_PORT = "1433"
 $env:DB_MSSQLDB_DATABASE = "dmnen_test"
 $env:DB_MSSQLDB_USER = "qa"
 $env:DB_MSSQLDB_PASSWORD = "bestqateam"
-$env:DB_MSSQLDB_SCHEMA = "dbo"
+$env:DB_MSSQLDB_SCHEMA = "n8n"
 $env:DB_MSSQLDB_POOL_SIZE = "10"
 $env:DB_MSSQLDB_CONNECTION_TIMEOUT = "20000"
 $env:DB_MSSQLDB_ENCRYPT = "false"
@@ -43,6 +43,7 @@ Write-Host "  DB_MSSQLDB_PASSWORD = ********" -ForegroundColor White
 Write-Host ""
 
 Write-Host "  N8N_SKIP_MIGRATIONS = $env:N8N_SKIP_MIGRATIONS (schema already created)" -ForegroundColor White
+Write-Host "  DB_MSSQLDB_SCHEMA = $env:DB_MSSQLDB_SCHEMA" -ForegroundColor White
 Write-Host ""
 
 Write-Host "========================================" -ForegroundColor Cyan

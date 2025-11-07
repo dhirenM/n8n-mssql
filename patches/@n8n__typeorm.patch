@@ -10787,116 +10787,667 @@ index 0000000000000000000000000000000000000000..1bff98c8415c76671b8a4e84ae6c3e51
 +        domain: string
 +    }
 +}
-diff --git a/util/InstanceChecker.d.ts b/util/InstanceChecker.d.ts
-index afafa945e6ef52407e5c984985a1af72bd936790..f5367e665207a8728c179cd11a8893ef146f291c 100644
---- a/util/InstanceChecker.d.ts
-+++ b/util/InstanceChecker.d.ts
-@@ -1,3 +1,5 @@
-+import type { MongoEntityManager } from "../entity-manager/MongoEntityManager";
-+import type { SqljsEntityManager } from "../entity-manager/SqljsEntityManager";
- import type { EntitySchema } from "../entity-schema/EntitySchema";
- import type { FindOperator } from "../find-options/FindOperator";
- import type { EqualOperator } from "../find-options/EqualOperator";
-@@ -22,9 +24,11 @@ import type { View } from "../schema-builder/view/View";
- import type { NotBrackets } from "../query-builder/NotBrackets";
- import type { EntityMetadata } from "../metadata/EntityMetadata";
- import type { ColumnMetadata } from "../metadata/ColumnMetadata";
-+import type { MssqlParameter } from "../driver/sqlserver/MssqlParameter";
- import { DataSource } from "../data-source";
- import { BaseEntity } from "../repository/BaseEntity";
- export declare class InstanceChecker {
-+    static isMssqlParameter(obj: unknown): obj is MssqlParameter;
-     static isEntityMetadata(obj: unknown): obj is EntityMetadata;
-     static isColumnMetadata(obj: unknown): obj is ColumnMetadata;
-     static isSelectQueryBuilder(obj: unknown): obj is SelectQueryBuilder<any>;
-@@ -37,6 +41,8 @@ export declare class InstanceChecker {
-     static isNotBrackets(obj: unknown): obj is NotBrackets;
-     static isSubject(obj: unknown): obj is Subject;
-     static isRdbmsSchemaBuilder(obj: unknown): obj is RdbmsSchemaBuilder;
-+    static isMongoEntityManager(obj: unknown): obj is MongoEntityManager;
-+    static isSqljsEntityManager(obj: unknown): obj is SqljsEntityManager;
-     static isEntitySchema(obj: unknown): obj is EntitySchema;
-     static isBaseEntityConstructor(obj: unknown): obj is typeof BaseEntity;
-     static isFindOperator(obj: unknown): obj is FindOperator<any>;
-diff --git a/util/InstanceChecker.js b/util/InstanceChecker.js
-index 83ed6f7aa9a2967843344d7d5d206bc48449b781..06ef106668835b7b3a18cc06cb2727c95a04e622 100644
---- a/util/InstanceChecker.js
-+++ b/util/InstanceChecker.js
-@@ -2,6 +2,9 @@
- Object.defineProperty(exports, "__esModule", { value: true });
- exports.InstanceChecker = void 0;
- class InstanceChecker {
-+    static isMssqlParameter(obj) {
-+        return this.check(obj, "MssqlParameter");
-+    }
-     static isEntityMetadata(obj) {
-         return this.check(obj, "EntityMetadata");
+diff --git a/query-builder/DeleteQueryBuilder.js b/query-builder/DeleteQueryBuilder.js
+index 02293a25fc59cc533040e1fe112f835328ed61d4..fbccdd1d40bfd4ef287063e6b299a672b4ae3d60 100644
+--- a/query-builder/DeleteQueryBuilder.js
++++ b/query-builder/DeleteQueryBuilder.js
+@@ -186,6 +186,9 @@ class DeleteQueryBuilder extends QueryBuilder_1.QueryBuilder {
+         if (returningExpression === "") {
+             return `DELETE FROM ${tableName}${whereExpression}`;
+         }
++        if (this.connection.driver.options.type === "mssql") {
++            return `DELETE FROM ${tableName} OUTPUT ${returningExpression}${whereExpression}`;
++        }
+         return `DELETE FROM ${tableName}${whereExpression} RETURNING ${returningExpression}`;
      }
-@@ -38,6 +41,12 @@ class InstanceChecker {
-     static isRdbmsSchemaBuilder(obj) {
-         return this.check(obj, "RdbmsSchemaBuilder");
+ }
+diff --git a/query-builder/InsertQueryBuilder.js b/query-builder/InsertQueryBuilder.js
+index fc0fb4965254f3f8ad1cbb5f2a82b3cf5f9c3a7e..bc3fae43bfb9f5be5abb9b9b2924cbbfcbdcbb69 100644
+--- a/query-builder/InsertQueryBuilder.js
++++ b/query-builder/InsertQueryBuilder.js
+@@ -83,10 +83,18 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+             }
+             if (this.expressionMap.updateEntity === true &&
+                 this.expressionMap.mainAlias.hasMetadata) {
+-                this.expressionMap.extraReturningColumns =
+-                    this.expressionMap.mainAlias.metadata.getInsertionReturningColumns();
++                if (!(valueSets.length > 1 &&
++                    this.connection.driver.options.type === "oracle")) {
++                    this.expressionMap.extraReturningColumns =
++                        this.expressionMap.mainAlias.metadata.getInsertionReturningColumns();
++                }
+                 returningColumns.push(...this.expressionMap.extraReturningColumns.filter((c) => !returningColumns.includes(c)));
+             }
++            if (returningColumns.length > 0 &&
++                this.connection.driver.options.type === "mssql") {
++                declareSql = this.connection.driver.buildTableVariableDeclaration("@OutputTable", returningColumns);
++                selectOutputSql = `SELECT * FROM @OutputTable`;
++            }
+             // console.timeEnd(".prepare returning statement");
+             // execute query
+             // console.time(".getting query and parameters");
+@@ -238,13 +246,17 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+     createInsertExpression() {
+         const tableName = this.getTableName(this.getMainTableName());
+         const valuesExpression = this.createValuesExpression(); // its important to get values before returning expression because oracle rely on native parameters and ordering of them is important
+-        const returningExpression = this.createReturningExpression("insert");
++        const returningExpression = this.connection.driver.options.type === "oracle" &&
++            this.getValueSets().length > 1
++            ? null
++            : this.createReturningExpression("insert"); // oracle doesnt support returning with multi-row insert
+         const columnsExpression = this.createColumnNamesExpression();
+         let query = "INSERT ";
+         if (this.expressionMap.onUpdate?.upsertType === "primary-key") {
+             query = "UPSERT ";
+         }
+-        if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver)) {
++        if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++            this.connection.driver.options.type === "aurora-mysql") {
+             query += `${this.expressionMap.onIgnore ? " IGNORE " : ""}`;
+         }
+         query += `INTO ${tableName}`;
+@@ -258,16 +270,30 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+         }
+         else {
+             if (!valuesExpression &&
+-                DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver))
++                (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++                    this.connection.driver.options.type === "aurora-mysql"))
+                 // special syntax for mysql DEFAULT VALUES insertion
+                 query += "()";
+         }
++        // add OUTPUT expression
++        if (returningExpression &&
++            this.connection.driver.options.type === "mssql") {
++            query += ` OUTPUT ${returningExpression}`;
++        }
+         // add VALUES expression
+         if (valuesExpression) {
+-            query += ` VALUES ${valuesExpression}`;
++            if ((this.connection.driver.options.type === "oracle" ||
++                this.connection.driver.options.type === "sap") &&
++                this.getValueSets().length > 1) {
++                query += ` ${valuesExpression}`;
++            }
++            else {
++                query += ` VALUES ${valuesExpression}`;
++            }
+         }
+         else {
+-            if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver)) {
++            if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++                this.connection.driver.options.type === "aurora-mysql") {
+                 // special syntax for mysql DEFAULT VALUES insertion
+                 query += " VALUES ()";
+             }
+@@ -314,7 +340,15 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                         updatePart.push(...this.expressionMap
+                             .mainAlias.metadata.columns.filter((column) => column.isUpdateDate &&
+                             !overwrite?.includes(column.databaseName) &&
+-                            !DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver))
++                            !((this.connection.driver.options
++                                .type === "oracle" &&
++                                this.getValueSets().length >
++                                    1) ||
++                                DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver) ||
++                                this.connection.driver.options
++                                    .type === "sap" ||
++                                this.connection.driver.options
++                                    .type === "spanner"))
+                             .map((column) => `${this.escape(column.databaseName)} = DEFAULT`));
+                         query += updatePart.join(", ");
+                         query += " ";
+@@ -358,9 +392,22 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+         // add RETURNING expression
+         if (returningExpression &&
+             (DriverUtils_1.DriverUtils.isPostgresFamily(this.connection.driver) ||
++                this.connection.driver.options.type === "oracle" ||
++                this.connection.driver.options.type === "cockroachdb" ||
+                 DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver))) {
+             query += ` RETURNING ${returningExpression}`;
+         }
++        // Inserting a specific value for an auto-increment primary key in mssql requires enabling IDENTITY_INSERT
++        // IDENTITY_INSERT can only be enabled for tables where there is an IDENTITY column and only if there is a value to be inserted (i.e. supplying DEFAULT is prohibited if IDENTITY_INSERT is enabled)
++        if (this.connection.driver.options.type === "mssql" &&
++            this.expressionMap.mainAlias.hasMetadata &&
++            this.expressionMap
++                .mainAlias.metadata.columns.filter((column) => this.expressionMap.insertColumns.length > 0
++                ? this.expressionMap.insertColumns.indexOf(column.propertyPath) !== -1
++                : column.isInsert)
++                .some((column) => this.isOverridingAutoIncrementBehavior(column))) {
++            query = `SET IDENTITY_INSERT ${tableName} ON; ${query}; SET IDENTITY_INSERT ${tableName} OFF`;
++        }
+         return query;
      }
-+    static isMongoEntityManager(obj) {
-+        return this.check(obj, "MongoEntityManager");
-+    }
-+    static isSqljsEntityManager(obj) {
-+        return this.check(obj, "SqljsEntityManager");
-+    }
-     static isEntitySchema(obj) {
-         return this.check(obj, "EntitySchema");
-     }
-diff --git a/util/InstanceChecker.js.map b/util/InstanceChecker.js.map
-index ebbd0da602b49dae9ed635f6e8ecf5220afe3694..7cea8db425eba7b5b58059eca023c29942903c15 100644
---- a/util/InstanceChecker.js.map
-+++ b/util/InstanceChecker.js.map
-@@ -1 +1 @@
--{"version":3,"sources":["../../src/util/InstanceChecker.ts"],"names":[],"mappings":"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","file":"InstanceChecker.js","sourcesContent":["import type { EntitySchema } from \"../entity-schema/EntitySchema\"\nimport type { FindOperator } from \"../find-options/FindOperator\"\nimport type { EqualOperator } from \"../find-options/EqualOperator\"\nimport type { Query } from \"../driver/Query\"\nimport type { RdbmsSchemaBuilder } from \"../schema-builder/RdbmsSchemaBuilder\"\nimport type { Subject } from \"../persistence/Subject\"\nimport type { SelectQueryBuilder } from \"../query-builder/SelectQueryBuilder\"\nimport type { UpdateQueryBuilder } from \"../query-builder/UpdateQueryBuilder\"\nimport type { DeleteQueryBuilder } from \"../query-builder/DeleteQueryBuilder\"\nimport type { SoftDeleteQueryBuilder } from \"../query-builder/SoftDeleteQueryBuilder\"\nimport type { InsertQueryBuilder } from \"../query-builder/InsertQueryBuilder\"\nimport type { RelationQueryBuilder } from \"../query-builder/RelationQueryBuilder\"\nimport type { Brackets } from \"../query-builder/Brackets\"\nimport type { Table } from \"../schema-builder/table/Table\"\nimport type { TableCheck } from \"../schema-builder/table/TableCheck\"\nimport type { TableColumn } from \"../schema-builder/table/TableColumn\"\nimport type { TableExclusion } from \"../schema-builder/table/TableExclusion\"\nimport type { TableForeignKey } from \"../schema-builder/table/TableForeignKey\"\nimport type { TableIndex } from \"../schema-builder/table/TableIndex\"\nimport type { TableUnique } from \"../schema-builder/table/TableUnique\"\nimport type { View } from \"../schema-builder/view/View\"\nimport type { NotBrackets } from \"../query-builder/NotBrackets\"\nimport type { EntityMetadata } from \"../metadata/EntityMetadata\"\nimport type { ColumnMetadata } from \"../metadata/ColumnMetadata\"\nimport { DataSource } from \"../data-source\"\nimport { BaseEntity } from \"../repository/BaseEntity\"\n\nexport class InstanceChecker {\n    static isEntityMetadata(obj: unknown): obj is EntityMetadata {\n        return this.check(obj, \"EntityMetadata\")\n    }\n    static isColumnMetadata(obj: unknown): obj is ColumnMetadata {\n        return this.check(obj, \"ColumnMetadata\")\n    }\n    static isSelectQueryBuilder(obj: unknown): obj is SelectQueryBuilder<any> {\n        return this.check(obj, \"SelectQueryBuilder\")\n    }\n    static isInsertQueryBuilder(obj: unknown): obj is InsertQueryBuilder<any> {\n        return this.check(obj, \"InsertQueryBuilder\")\n    }\n    static isDeleteQueryBuilder(obj: unknown): obj is DeleteQueryBuilder<any> {\n        return this.check(obj, \"DeleteQueryBuilder\")\n    }\n    static isUpdateQueryBuilder(obj: unknown): obj is UpdateQueryBuilder<any> {\n        return this.check(obj, \"UpdateQueryBuilder\")\n    }\n    static isSoftDeleteQueryBuilder(\n        obj: unknown,\n    ): obj is SoftDeleteQueryBuilder<any> {\n        return this.check(obj, \"SoftDeleteQueryBuilder\")\n    }\n    static isRelationQueryBuilder(\n        obj: unknown,\n    ): obj is RelationQueryBuilder<any> {\n        return this.check(obj, \"RelationQueryBuilder\")\n    }\n    static isBrackets(obj: unknown): obj is Brackets {\n        return this.check(obj, \"Brackets\") || this.check(obj, \"NotBrackets\")\n    }\n    static isNotBrackets(obj: unknown): obj is NotBrackets {\n        return this.check(obj, \"NotBrackets\")\n    }\n    static isSubject(obj: unknown): obj is Subject {\n        return this.check(obj, \"Subject\")\n    }\n    static isRdbmsSchemaBuilder(obj: unknown): obj is RdbmsSchemaBuilder {\n        return this.check(obj, \"RdbmsSchemaBuilder\")\n    }\n    static isEntitySchema(obj: unknown): obj is EntitySchema {\n        return this.check(obj, \"EntitySchema\")\n    }\n    static isBaseEntityConstructor(obj: unknown): obj is typeof BaseEntity {\n        return (\n            typeof obj === \"function\" &&\n            typeof (obj as typeof BaseEntity).hasId === \"function\" &&\n            typeof (obj as typeof BaseEntity).save === \"function\" &&\n            typeof (obj as typeof BaseEntity).useDataSource === \"function\"\n        )\n    }\n    static isFindOperator(obj: unknown): obj is FindOperator<any> {\n        return (\n            this.check(obj, \"FindOperator\") || this.check(obj, \"EqualOperator\")\n        )\n    }\n    static isEqualOperator(obj: unknown): obj is EqualOperator<any> {\n        return this.check(obj, \"EqualOperator\")\n    }\n    static isQuery(obj: unknown): obj is Query {\n        return this.check(obj, \"Query\")\n    }\n    static isTable(obj: unknown): obj is Table {\n        return this.check(obj, \"Table\")\n    }\n    static isTableCheck(obj: unknown): obj is TableCheck {\n        return this.check(obj, \"TableCheck\")\n    }\n    static isTableColumn(obj: unknown): obj is TableColumn {\n        return this.check(obj, \"TableColumn\")\n    }\n    static isTableExclusion(obj: unknown): obj is TableExclusion {\n        return this.check(obj, \"TableExclusion\")\n    }\n    static isTableForeignKey(obj: unknown): obj is TableForeignKey {\n        return this.check(obj, \"TableForeignKey\")\n    }\n    static isTableIndex(obj: unknown): obj is TableIndex {\n        return this.check(obj, \"TableIndex\")\n    }\n    static isTableUnique(obj: unknown): obj is TableUnique {\n        return this.check(obj, \"TableUnique\")\n    }\n    static isView(obj: unknown): obj is View {\n        return this.check(obj, \"View\")\n    }\n    static isDataSource(obj: unknown): obj is DataSource {\n        return this.check(obj, \"DataSource\")\n    }\n\n    private static check(obj: unknown, name: string) {\n        return (\n            typeof obj === \"object\" &&\n            obj !== null &&\n            (obj as { \"@instanceof\": Symbol })[\"@instanceof\"] ===\n                Symbol.for(name)\n        )\n    }\n}\n"],"sourceRoot":".."}
-\ No newline at end of file
-+{"version":3,"sources":["../../src/util/InstanceChecker.ts"],"names":[],"mappings":"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","file":"InstanceChecker.js","sourcesContent":["import type { MongoEntityManager } from \"../entity-manager/MongoEntityManager\"\nimport type { SqljsEntityManager } from \"../entity-manager/SqljsEntityManager\"\nimport type { EntitySchema } from \"../entity-schema/EntitySchema\"\nimport type { FindOperator } from \"../find-options/FindOperator\"\nimport type { EqualOperator } from \"../find-options/EqualOperator\"\nimport type { Query } from \"../driver/Query\"\nimport type { RdbmsSchemaBuilder } from \"../schema-builder/RdbmsSchemaBuilder\"\nimport type { Subject } from \"../persistence/Subject\"\nimport type { SelectQueryBuilder } from \"../query-builder/SelectQueryBuilder\"\nimport type { UpdateQueryBuilder } from \"../query-builder/UpdateQueryBuilder\"\nimport type { DeleteQueryBuilder } from \"../query-builder/DeleteQueryBuilder\"\nimport type { SoftDeleteQueryBuilder } from \"../query-builder/SoftDeleteQueryBuilder\"\nimport type { InsertQueryBuilder } from \"../query-builder/InsertQueryBuilder\"\nimport type { RelationQueryBuilder } from \"../query-builder/RelationQueryBuilder\"\nimport type { Brackets } from \"../query-builder/Brackets\"\nimport type { Table } from \"../schema-builder/table/Table\"\nimport type { TableCheck } from \"../schema-builder/table/TableCheck\"\nimport type { TableColumn } from \"../schema-builder/table/TableColumn\"\nimport type { TableExclusion } from \"../schema-builder/table/TableExclusion\"\nimport type { TableForeignKey } from \"../schema-builder/table/TableForeignKey\"\nimport type { TableIndex } from \"../schema-builder/table/TableIndex\"\nimport type { TableUnique } from \"../schema-builder/table/TableUnique\"\nimport type { View } from \"../schema-builder/view/View\"\nimport type { NotBrackets } from \"../query-builder/NotBrackets\"\nimport type { EntityMetadata } from \"../metadata/EntityMetadata\"\nimport type { ColumnMetadata } from \"../metadata/ColumnMetadata\"\nimport type { MssqlParameter } from \"../driver/sqlserver/MssqlParameter\"\nimport { DataSource } from \"../data-source\"\nimport { BaseEntity } from \"../repository/BaseEntity\"\n\nexport class InstanceChecker {\n    static isMssqlParameter(obj: unknown): obj is MssqlParameter {\n        return this.check(obj, \"MssqlParameter\")\n    }\n    static isEntityMetadata(obj: unknown): obj is EntityMetadata {\n        return this.check(obj, \"EntityMetadata\")\n    }\n    static isColumnMetadata(obj: unknown): obj is ColumnMetadata {\n        return this.check(obj, \"ColumnMetadata\")\n    }\n    static isSelectQueryBuilder(obj: unknown): obj is SelectQueryBuilder<any> {\n        return this.check(obj, \"SelectQueryBuilder\")\n    }\n    static isInsertQueryBuilder(obj: unknown): obj is InsertQueryBuilder<any> {\n        return this.check(obj, \"InsertQueryBuilder\")\n    }\n    static isDeleteQueryBuilder(obj: unknown): obj is DeleteQueryBuilder<any> {\n        return this.check(obj, \"DeleteQueryBuilder\")\n    }\n    static isUpdateQueryBuilder(obj: unknown): obj is UpdateQueryBuilder<any> {\n        return this.check(obj, \"UpdateQueryBuilder\")\n    }\n    static isSoftDeleteQueryBuilder(\n        obj: unknown,\n    ): obj is SoftDeleteQueryBuilder<any> {\n        return this.check(obj, \"SoftDeleteQueryBuilder\")\n    }\n    static isRelationQueryBuilder(\n        obj: unknown,\n    ): obj is RelationQueryBuilder<any> {\n        return this.check(obj, \"RelationQueryBuilder\")\n    }\n    static isBrackets(obj: unknown): obj is Brackets {\n        return this.check(obj, \"Brackets\") || this.check(obj, \"NotBrackets\")\n    }\n    static isNotBrackets(obj: unknown): obj is NotBrackets {\n        return this.check(obj, \"NotBrackets\")\n    }\n    static isSubject(obj: unknown): obj is Subject {\n        return this.check(obj, \"Subject\")\n    }\n    static isRdbmsSchemaBuilder(obj: unknown): obj is RdbmsSchemaBuilder {\n        return this.check(obj, \"RdbmsSchemaBuilder\")\n    }\n    static isMongoEntityManager(obj: unknown): obj is MongoEntityManager {\n        return this.check(obj, \"MongoEntityManager\")\n    }\n    static isSqljsEntityManager(obj: unknown): obj is SqljsEntityManager {\n        return this.check(obj, \"SqljsEntityManager\")\n    }\n    static isEntitySchema(obj: unknown): obj is EntitySchema {\n        return this.check(obj, \"EntitySchema\")\n    }\n    static isBaseEntityConstructor(obj: unknown): obj is typeof BaseEntity {\n        return (\n            typeof obj === \"function\" &&\n            typeof (obj as typeof BaseEntity).hasId === \"function\" &&\n            typeof (obj as typeof BaseEntity).save === \"function\" &&\n            typeof (obj as typeof BaseEntity).useDataSource === \"function\"\n        )\n    }\n    static isFindOperator(obj: unknown): obj is FindOperator<any> {\n        return (\n            this.check(obj, \"FindOperator\") || this.check(obj, \"EqualOperator\")\n        )\n    }\n    static isEqualOperator(obj: unknown): obj is EqualOperator<any> {\n        return this.check(obj, \"EqualOperator\")\n    }\n    static isQuery(obj: unknown): obj is Query {\n        return this.check(obj, \"Query\")\n    }\n    static isTable(obj: unknown): obj is Table {\n        return this.check(obj, \"Table\")\n    }\n    static isTableCheck(obj: unknown): obj is TableCheck {\n        return this.check(obj, \"TableCheck\")\n    }\n    static isTableColumn(obj: unknown): obj is TableColumn {\n        return this.check(obj, \"TableColumn\")\n    }\n    static isTableExclusion(obj: unknown): obj is TableExclusion {\n        return this.check(obj, \"TableExclusion\")\n    }\n    static isTableForeignKey(obj: unknown): obj is TableForeignKey {\n        return this.check(obj, \"TableForeignKey\")\n    }\n    static isTableIndex(obj: unknown): obj is TableIndex {\n        return this.check(obj, \"TableIndex\")\n    }\n    static isTableUnique(obj: unknown): obj is TableUnique {\n        return this.check(obj, \"TableUnique\")\n    }\n    static isView(obj: unknown): obj is View {\n        return this.check(obj, \"View\")\n    }\n    static isDataSource(obj: unknown): obj is DataSource {\n        return this.check(obj, \"DataSource\")\n    }\n\n    private static check(obj: unknown, name: string) {\n        return (\n            typeof obj === \"object\" &&\n            obj !== null &&\n            (obj as { \"@instanceof\": Symbol })[\"@instanceof\"] ===\n                Symbol.for(name)\n        )\n    }\n}\n"],"sourceRoot":".."}
+     /**
+@@ -378,10 +425,16 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                 return false;
+             }
+             // if user did not specified such list then return all columns except auto-increment one
++            // for Oracle we return auto-increment column as well because Oracle does not support DEFAULT VALUES expression
+             if (column.isGenerated &&
+                 column.generationStrategy === "increment" &&
++                !(this.connection.driver.options.type === "spanner") &&
++                !(this.connection.driver.options.type === "oracle") &&
+                 !DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver) &&
+-                !DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver))
++                !DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) &&
++                !(this.connection.driver.options.type === "aurora-mysql") &&
++                !(this.connection.driver.options.type === "mssql" &&
++                    this.isOverridingAutoIncrementBehavior(column)))
+                 return false;
+             return true;
+         });
+@@ -422,7 +475,17 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+             valueSets.forEach((valueSet, valueSetIndex) => {
+                 columns.forEach((column, columnIndex) => {
+                     if (columnIndex === 0) {
+-                        expression += "(";
++                        if (this.connection.driver.options.type === "oracle" &&
++                            valueSets.length > 1) {
++                            expression += " SELECT ";
++                        }
++                        else if (this.connection.driver.options.type === "sap" &&
++                            valueSets.length > 1) {
++                            expression += " SELECT ";
++                        }
++                        else {
++                            expression += "(";
++                        }
+                     }
+                     // extract real value from the entity
+                     let value = column.getEntityValue(valueSet);
+@@ -478,7 +541,11 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                         // if value for this column was not provided then insert default value
+                     }
+                     else if (value === undefined) {
+-                        if (DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver)) {
++                        if ((this.connection.driver.options.type === "oracle" &&
++                            valueSets.length > 1) ||
++                            DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver) ||
++                            this.connection.driver.options.type === "sap" ||
++                            this.connection.driver.options.type === "spanner") {
+                             // unfortunately sqlite does not support DEFAULT expression in INSERT queries
+                             if (column.default !== undefined &&
+                                 column.default !== null) {
+@@ -493,6 +560,10 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                         else {
+                             expression += "DEFAULT";
+                         }
++                    }
++                    else if (value === null &&
++                        this.connection.driver.options.type === "spanner") {
++                        expression += "NULL";
+                         // support for SQL expressions in queries
+                     }
+                     else if (typeof value === "function") {
+@@ -500,11 +571,15 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                         // just any other regular value
+                     }
+                     else {
++                        if (this.connection.driver.options.type === "mssql")
++                            value = this.connection.driver.parametrizeValue(column, value);
+                         // we need to store array values in a special class to make sure parameter replacement will work correctly
+                         // if (value instanceof Array)
+                         //     value = new ArrayParameter(value);
+                         const paramName = this.createParameter(value);
+-                        if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) &&
++                        if ((DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++                            this.connection.driver.options.type ===
++                                "aurora-mysql") &&
+                             this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
+                             const useLegacy = this.connection.driver.options.legacySpatialSupport;
+                             const geomFromText = useLegacy
+@@ -526,16 +601,48 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                                 expression += `ST_GeomFromGeoJSON(${paramName})::${column.type}`;
+                             }
+                         }
++                        else if (this.connection.driver.options.type === "mssql" &&
++                            this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
++                            expression +=
++                                column.type +
++                                    "::STGeomFromText(" +
++                                    paramName +
++                                    ", " +
++                                    (column.srid || "0") +
++                                    ")";
++                        }
+                         else {
+                             expression += paramName;
+                         }
+                     }
+                     if (columnIndex === columns.length - 1) {
+                         if (valueSetIndex === valueSets.length - 1) {
+-                            expression += ")";
++                            if (this.connection.driver.options.type ===
++                                "oracle" &&
++                                valueSets.length > 1) {
++                                expression += " FROM DUAL ";
++                            }
++                            else if (this.connection.driver.options.type === "sap" &&
++                                valueSets.length > 1) {
++                                expression += " FROM dummy ";
++                            }
++                            else {
++                                expression += ")";
++                            }
+                         }
+                         else {
+-                            expression += "), ";
++                            if (this.connection.driver.options.type ===
++                                "oracle" &&
++                                valueSets.length > 1) {
++                                expression += " FROM DUAL UNION ALL ";
++                            }
++                            else if (this.connection.driver.options.type === "sap" &&
++                                valueSets.length > 1) {
++                                expression += " FROM dummy UNION ALL ";
++                            }
++                            else {
++                                expression += "), ";
++                            }
+                         }
+                     }
+                     else {
+@@ -564,12 +671,19 @@ class InsertQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                         // if value for this column was not provided then insert default value
+                     }
+                     else if (value === undefined) {
+-                        if (DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver)) {
++                        if ((this.connection.driver.options.type === "oracle" &&
++                            valueSets.length > 1) ||
++                            DriverUtils_1.DriverUtils.isSQLiteFamily(this.connection.driver) ||
++                            this.connection.driver.options.type === "sap" ||
++                            this.connection.driver.options.type === "spanner") {
+                             expression += "NULL";
+                         }
+                         else {
+                             expression += "DEFAULT";
+                         }
++                    }
++                    else if (value === null &&
++                        this.connection.driver.options.type === "spanner") {
+                         // just any other regular value
+                     }
+                     else {
+diff --git a/query-builder/QueryBuilder.js b/query-builder/QueryBuilder.js
+index 9eecc2702e266e2d64046813057ed083537aed81..2df381142abd9f139ab3c5be5f47f29d90f8a074 100644
+--- a/query-builder/QueryBuilder.js
++++ b/query-builder/QueryBuilder.js
+@@ -602,9 +602,42 @@ class QueryBuilder {
+             let columnsExpression = columns
+                 .map((column) => {
+                 const name = this.escape(column.databaseName);
+-                return name;
++                if (driver.options.type === "mssql") {
++                    if (this.expressionMap.queryType === "insert" ||
++                        this.expressionMap.queryType === "update" ||
++                        this.expressionMap.queryType === "soft-delete" ||
++                        this.expressionMap.queryType === "restore") {
++                        return "INSERTED." + name;
++                    }
++                    else {
++                        return (this.escape(this.getMainTableName()) +
++                            "." +
++                            name);
++                    }
++                }
++                else {
++                    return name;
++                }
+             })
+                 .join(", ");
++            if (driver.options.type === "oracle") {
++                columnsExpression +=
++                    " INTO " +
++                        columns
++                            .map((column) => {
++                            return this.createParameter({
++                                type: driver.columnTypeToNativeParameter(column.type),
++                                dir: driver.oracle.BIND_OUT,
++                            });
++                        })
++                            .join(", ");
++            }
++            if (driver.options.type === "mssql") {
++                if (this.expressionMap.queryType === "insert" ||
++                    this.expressionMap.queryType === "update") {
++                    columnsExpression += " INTO @OutputTable";
++                }
++            }
+             return columnsExpression;
+         }
+         else if (typeof this.expressionMap.returning === "string") {
+@@ -693,7 +726,8 @@ class QueryBuilder {
+             case "equal":
+                 return `${condition.parameters[0]} = ${condition.parameters[1]}`;
+             case "ilike":
+-                if (driver.options.type === "postgres") {
++                if (driver.options.type === "postgres" ||
++                    driver.options.type === "cockroachdb") {
+                     return `${condition.parameters[0]} ILIKE ${condition.parameters[1]}`;
+                 }
+                 return `UPPER(${condition.parameters[0]}) LIKE UPPER(${condition.parameters[1]})`;
+@@ -709,6 +743,9 @@ class QueryBuilder {
+                     .slice(1)
+                     .join(", ")})`;
+             case "any":
++                if (driver.options.type === "cockroachdb") {
++                    return `${condition.parameters[0]}::STRING = ANY(${condition.parameters[1]}::STRING[])`;
++                }
+                 return `${condition.parameters[0]} = ANY(${condition.parameters[1]})`;
+             case "isNull":
+                 return `${condition.parameters[0]} IS NULL`;
 diff --git a/query-builder/SelectQueryBuilder.js b/query-builder/SelectQueryBuilder.js
-index 83ed6f7aa9a2967843344d7d5d206bc48449b781..06ef106668835b7b3a18cc06cb2727c95a04e622 100644
+index 3079188f413787c784164ae9ef0da5db09e3e697..8eda00e651cf2c73592f72586c9c1964d33182b3 100644
 --- a/query-builder/SelectQueryBuilder.js
 +++ b/query-builder/SelectQueryBuilder.js
-@@ -1351,6 +1351,13 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
-             if (offset)
-                 return \
-LIMIT
--1
-OFFSET
-\ + offset;
+@@ -483,6 +483,14 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+      * Enables time travelling for the current query (only supported by cockroach currently)
+      */
+     timeTravelQuery(timeTravelFn) {
++        if (this.connection.driver.options.type === "cockroachdb") {
++            if (timeTravelFn === undefined) {
++                this.expressionMap.timeTravel = "follower_read_timestamp()";
++            }
++            else {
++                this.expressionMap.timeTravel = timeTravelFn;
++            }
++        }
+         return this;
+     }
+     /**
+@@ -1335,7 +1343,33 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+             offset = this.expressionMap.skip;
+             limit = this.expressionMap.take;
          }
-+        else if (this.connection.driver.options.type === \mssql\) {
-+            // MSSQL uses OFFSET/FETCH syntax instead of LIMIT
+-        if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver)) {
++        if (this.connection.driver.options.type === "mssql") {
++            // Due to a limitation in SQL Server's parser implementation it does not support using
++            // OFFSET or FETCH NEXT without an ORDER BY clause being provided. In cases where the
++            // user does not request one we insert a dummy ORDER BY that does nothing and should
++            // have no effect on the query planner or on the order of the results returned.
++            // https://dba.stackexchange.com/a/193799
++            let prefix = "";
++            if ((limit || offset) &&
++                Object.keys(this.expressionMap.allOrderBys).length <= 0) {
++                prefix = " ORDER BY (SELECT NULL)";
++            }
 +            if (limit && offset)
-+                return \
-OFFSET
-\ + offset + \
-ROWS
-FETCH
-NEXT
-\ + limit + \
-ROWS
-ONLY\;
++                return (prefix +
++                    " OFFSET " +
++                    offset +
++                    " ROWS FETCH NEXT " +
++                    limit +
++                    " ROWS ONLY");
 +            if (limit)
-+                return \
-OFFSET
-0
-ROWS
-FETCH
-NEXT
-\ + limit + \
-ROWS
-ONLY\;
++                return (prefix + " OFFSET 0 ROWS FETCH NEXT " + limit + " ROWS ONLY");
 +            if (offset)
-+                return \
-OFFSET
-\ + offset + \
-ROWS\;
++                return prefix + " OFFSET " + offset + " ROWS";
++        }
++        else if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++            this.connection.driver.options.type === "aurora-mysql" ||
++            this.connection.driver.options.type === "sap" ||
++            this.connection.driver.options.type === "spanner") {
+             if (limit && offset)
+                 return " LIMIT " + limit + " OFFSET " + offset;
+             if (limit)
+@@ -1351,6 +1385,18 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+             if (offset)
+                 return " LIMIT -1 OFFSET " + offset;
+         }
++        else if (this.connection.driver.options.type === "oracle") {
++            if (limit && offset)
++                return (" OFFSET " +
++                    offset +
++                    " ROWS FETCH NEXT " +
++                    limit +
++                    " ROWS ONLY");
++            if (limit)
++                return " FETCH NEXT " + limit + " ROWS ONLY";
++            if (offset)
++                return " OFFSET " + offset + " ROWS";
 +        }
          else {
              if (limit && offset)
-                 return \
-LIMIT
-\ + limit + \
-OFFSET
-\ + offset;
+                 return " LIMIT " + limit + " OFFSET " + offset;
+@@ -1370,6 +1416,16 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+      *      ON U.ID=O.OrderID
+      */
+     createTableLockExpression() {
++        if (this.connection.driver.options.type === "mssql") {
++            switch (this.expressionMap.lockMode) {
++                case "pessimistic_read":
++                    return " WITH (HOLDLOCK, ROWLOCK)";
++                case "pessimistic_write":
++                    return " WITH (UPDLOCK, ROWLOCK)";
++                case "dirty_read":
++                    return " WITH (NOLOCK)";
++            }
++        }
+         return "";
+     }
+     /**
+@@ -1379,7 +1435,8 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+         const driver = this.connection.driver;
+         let lockTablesClause = "";
+         if (this.expressionMap.lockTables) {
+-            if (!DriverUtils_1.DriverUtils.isPostgresFamily(driver)) {
++            if (!(DriverUtils_1.DriverUtils.isPostgresFamily(driver) ||
++                driver.options.type === "cockroachdb")) {
+                 throw new error_1.TypeORMError("Lock tables not supported in selected driver");
+             }
+             if (this.expressionMap.lockTables.length < 1) {
+@@ -1396,7 +1453,8 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+         }
+         switch (this.expressionMap.lockMode) {
+             case "pessimistic_read":
+-                if (driver.options.type === "mysql") {
++                if (driver.options.type === "mysql" ||
++                    driver.options.type === "aurora-mysql") {
+                     if (DriverUtils_1.DriverUtils.isReleaseVersionOrGreater(driver, "8.0.0")) {
+                         return (" FOR SHARE" + lockTablesClause + onLockExpression);
+                     }
+@@ -1410,16 +1468,28 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                 else if (DriverUtils_1.DriverUtils.isPostgresFamily(driver)) {
+                     return " FOR SHARE" + lockTablesClause + onLockExpression;
+                 }
++                else if (driver.options.type === "oracle") {
++                    return " FOR UPDATE";
++                }
++                else if (driver.options.type === "mssql") {
++                    return "";
++                }
+                 else {
+                     throw new LockNotSupportedOnGivenDriverError_1.LockNotSupportedOnGivenDriverError();
+                 }
+             case "pessimistic_write":
+-                if (DriverUtils_1.DriverUtils.isMySQLFamily(driver)) {
++                if (DriverUtils_1.DriverUtils.isMySQLFamily(driver) ||
++                    driver.options.type === "aurora-mysql" ||
++                    driver.options.type === "oracle") {
+                     return " FOR UPDATE" + onLockExpression;
+                 }
+-                else if (DriverUtils_1.DriverUtils.isPostgresFamily(driver)) {
++                else if (DriverUtils_1.DriverUtils.isPostgresFamily(driver) ||
++                    driver.options.type === "cockroachdb") {
+                     return " FOR UPDATE" + lockTablesClause + onLockExpression;
+                 }
++                else if (driver.options.type === "mssql") {
++                    return "";
++                }
+                 else {
+                     throw new LockNotSupportedOnGivenDriverError_1.LockNotSupportedOnGivenDriverError();
+                 }
+@@ -1434,7 +1504,8 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                     throw new LockNotSupportedOnGivenDriverError_1.LockNotSupportedOnGivenDriverError();
+                 }
+             case "pessimistic_write_or_fail":
+-                if (DriverUtils_1.DriverUtils.isPostgresFamily(driver)) {
++                if (DriverUtils_1.DriverUtils.isPostgresFamily(driver) ||
++                    driver.options.type === "cockroachdb") {
+                     return " FOR UPDATE" + lockTablesClause + " NOWAIT";
+                 }
+                 else if (DriverUtils_1.DriverUtils.isMySQLFamily(driver)) {
+@@ -1444,7 +1515,8 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                     throw new LockNotSupportedOnGivenDriverError_1.LockNotSupportedOnGivenDriverError();
+                 }
+             case "for_no_key_update":
+-                if (DriverUtils_1.DriverUtils.isPostgresFamily(driver)) {
++                if (DriverUtils_1.DriverUtils.isPostgresFamily(driver) ||
++                    driver.options.type === "cockroachdb") {
+                     return (" FOR NO KEY UPDATE" +
+                         lockTablesClause +
+                         onLockExpression);
+@@ -1515,9 +1587,9 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                 selectionPath = `(${column.query(escapedAliasName)})`;
+             }
+             if (this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
+-                if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver)) {
+-                    const useLegacy = this.connection.driver
+-                        .options.legacySpatialSupport;
++                if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++                    this.connection.driver.options.type === "aurora-mysql") {
++                    const useLegacy = this.connection.driver.options.legacySpatialSupport;
+                     const asText = useLegacy ? "AsText" : "ST_AsText";
+                     selectionPath = `${asText}(${selectionPath})`;
+                 }
+@@ -1529,6 +1601,8 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                     else {
+                         selectionPath = `ST_AsGeoJSON(${selectionPath})::json`;
+                     }
++                if (this.connection.driver.options.type === "mssql")
++                    selectionPath = `${selectionPath}.ToString()`;
+             }
+             const selections = this.expressionMap.selects.filter((select) => select.selection === aliasName + "." + column.propertyPath);
+             if (selections.length) {
+@@ -1579,7 +1653,8 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+             return "COUNT(1)";
+         }
+         // For everything else, we'll need to do some hackery to get the correct count values.
+-        if (DriverUtils_1.DriverUtils.isPostgresFamily(this.connection.driver)) {
++        if (this.connection.driver.options.type === "cockroachdb" ||
++            DriverUtils_1.DriverUtils.isPostgresFamily(this.connection.driver)) {
+             // Postgres and CockroachDB can pass multiple parameters to the `DISTINCT` function
+             // https://www.postgresql.org/docs/9.5/sql-select.html#SQL-DISTINCT
+             return ("COUNT(DISTINCT(" +
+@@ -1597,6 +1672,30 @@ class SelectQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                     .join(", ") +
+                 ")");
+         }
++        if (this.connection.driver.options.type === "mssql") {
++            // SQL Server has gotta be different from everyone else.  They don't support
++            // distinct counting multiple columns & they don't have the same operator
++            // characteristic for concatenating, so we gotta use the `CONCAT` function.
++            // However, If it's exactly 1 column we can omit the `CONCAT` for better performance.
++            const columnsExpression = primaryColumns
++                .map((primaryColumn) => `${distinctAlias}.${this.escape(primaryColumn.databaseName)}`)
++                .join(", '|;|', ");
++            if (primaryColumns.length === 1) {
++                return `COUNT(DISTINCT(${columnsExpression}))`;
++            }
++            return `COUNT(DISTINCT(CONCAT(${columnsExpression})))`;
++        }
++        if (this.connection.driver.options.type === "spanner") {
++            // spanner also has gotta be different from everyone else.
++            // they do not support concatenation of different column types without casting them to string
++            if (primaryColumns.length === 1) {
++                return `COUNT(DISTINCT(${distinctAlias}.${this.escape(primaryColumns[0].databaseName)}))`;
++            }
++            const columnsExpression = primaryColumns
++                .map((primaryColumn) => `CAST(${distinctAlias}.${this.escape(primaryColumn.databaseName)} AS STRING)`)
++                .join(", '|;|', ");
++            return `COUNT(DISTINCT(CONCAT(${columnsExpression})))`;
++        }
+         // If all else fails, fall back to a `COUNT` and `DISTINCT` across all the primary columns concatenated.
+         // Per the SQL spec, this is the canonical string concatenation mechanism which is most
+         // likely to work across servers implementing the SQL standard.
+diff --git a/query-builder/UpdateQueryBuilder.js b/query-builder/UpdateQueryBuilder.js
+index 3efd35980867cfd0a703ce22be93b37e759276ac..3bf106b0bf9bf1b5bf61d5f3eb4ebfe7f635baa8 100644
+--- a/query-builder/UpdateQueryBuilder.js
++++ b/query-builder/UpdateQueryBuilder.js
+@@ -72,6 +72,11 @@ class UpdateQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                     returningResultsEntityUpdator.getUpdationReturningColumns();
+                 returningColumns.push(...this.expressionMap.extraReturningColumns.filter((c) => !returningColumns.includes(c)));
+             }
++            if (returningColumns.length > 0 &&
++                this.connection.driver.options.type === "mssql") {
++                declareSql = this.connection.driver.buildTableVariableDeclaration("@OutputTable", returningColumns);
++                selectOutputSql = `SELECT * FROM @OutputTable`;
++            }
+             // execute update query
+             const [updateSql, parameters] = this.getQueryAndParameters();
+             const statements = [declareSql, updateSql, selectOutputSql];
+@@ -328,10 +333,21 @@ class UpdateQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                             " = " +
+                             value());
+                     }
++                    else if ((this.connection.driver.options.type === "sap" ||
++                        this.connection.driver.options.type ===
++                            "spanner") &&
++                        value === null) {
++                        updateColumnAndValues.push(this.escape(column.databaseName) + " = NULL");
++                    }
+                     else {
++                        if (this.connection.driver.options.type === "mssql") {
++                            value = this.connection.driver.parametrizeValue(column, value);
++                        }
+                         const paramName = this.createParameter(value);
+                         let expression = null;
+-                        if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) &&
++                        if ((DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++                            this.connection.driver.options.type ===
++                                "aurora-mysql") &&
+                             this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
+                             const useLegacy = this.connection.driver.options.legacySpatialSupport;
+                             const geomFromText = useLegacy
+@@ -353,6 +369,17 @@ class UpdateQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                                 expression = `ST_GeomFromGeoJSON(${paramName})::${column.type}`;
+                             }
+                         }
++                        else if (this.connection.driver.options.type ===
++                            "mssql" &&
++                            this.connection.driver.spatialTypes.indexOf(column.type) !== -1) {
++                            expression =
++                                column.type +
++                                    "::STGeomFromText(" +
++                                    paramName +
++                                    ", " +
++                                    (column.srid || "0") +
++                                    ")";
++                        }
+                         else {
+                             expression = paramName;
+                         }
+@@ -385,6 +412,11 @@ class UpdateQueryBuilder extends QueryBuilder_1.QueryBuilder {
+                     // support for SQL expressions in update query
+                     updateColumnAndValues.push(this.escape(key) + " = " + value());
+                 }
++                else if ((this.connection.driver.options.type === "sap" ||
++                    this.connection.driver.options.type === "spanner") &&
++                    value === null) {
++                    updateColumnAndValues.push(this.escape(key) + " = NULL");
++                }
+                 else {
+                     // we need to store array values in a special class to make sure parameter replacement will work correctly
+                     // if (value instanceof Array)
+@@ -403,6 +435,9 @@ class UpdateQueryBuilder extends QueryBuilder_1.QueryBuilder {
+         if (returningExpression === "") {
+             return `UPDATE ${this.getTableName(this.getMainTableName())} SET ${updateColumnAndValues.join(", ")}${whereExpression}`; // todo: how do we replace aliases in where to nothing?
+         }
++        if (this.connection.driver.options.type === "mssql") {
++            return `UPDATE ${this.getTableName(this.getMainTableName())} SET ${updateColumnAndValues.join(", ")} OUTPUT ${returningExpression}${whereExpression}`;
++        }
+         return `UPDATE ${this.getTableName(this.getMainTableName())} SET ${updateColumnAndValues.join(", ")}${whereExpression} RETURNING ${returningExpression}`;
+     }
+     /**
+@@ -436,7 +471,8 @@ class UpdateQueryBuilder extends QueryBuilder_1.QueryBuilder {
+     createLimitExpression() {
+         let limit = this.expressionMap.limit;
+         if (limit) {
+-            if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver)) {
++            if (DriverUtils_1.DriverUtils.isMySQLFamily(this.connection.driver) ||
++                this.connection.driver.options.type === "aurora-mysql") {
+                 return " LIMIT " + limit;
+             }
+             else {
