@@ -251,48 +251,62 @@ export const useSettingsStore = defineStore(STORES.SETTINGS, () => {
 
 	const getSettings = async () => {
 		const rootStore = useRootStore();
-		const fetchedSettings = await settingsApi.getSettings(rootStore.restApiContext);
 
-		if (fetchedSettings.settingsMode === 'public') {
-			// public settings mode is typically used for unauthenticated users
-			// when public settings are returned only critical setup is needed
-			setPublicSettings(fetchedSettings);
-			return;
-		}
+		try {
+			console.log('[Settings Store] Fetching settings from:', rootStore.restApiContext);
+			const fetchedSettings = await settingsApi.getSettings(rootStore.restApiContext);
+			console.log('[Settings Store] Received settings:', fetchedSettings);
 
-		setSettings(fetchedSettings);
-		settings.value.communityNodesEnabled = fetchedSettings.communityNodesEnabled;
-		settings.value.unverifiedCommunityNodesEnabled =
-			fetchedSettings.unverifiedCommunityNodesEnabled;
-		setAllowedModules(fetchedSettings.allowedModules);
-		setSaveDataErrorExecution(fetchedSettings.saveDataErrorExecution);
-		setSaveDataSuccessExecution(fetchedSettings.saveDataSuccessExecution);
-		setSaveDataProgressExecution(fetchedSettings.saveExecutionProgress);
-		setSaveManualExecutions(fetchedSettings.saveManualExecutions);
+			// Handle case where API returns undefined or null
+			if (!fetchedSettings) {
+				console.error('[Settings Store] Settings API returned undefined or null');
+				throw new Error('Failed to fetch settings - response was empty');
+			}
 
-		isMFAEnforced.value = settings.value.mfa?.enforced ?? false;
+			if (fetchedSettings.settingsMode === 'public') {
+				// public settings mode is typically used for unauthenticated users
+				// when public settings are returned only critical setup is needed
+				setPublicSettings(fetchedSettings);
+				return;
+			}
 
-		rootStore.setUrlBaseWebhook(fetchedSettings.urlBaseWebhook);
-		rootStore.setUrlBaseEditor(fetchedSettings.urlBaseEditor);
-		rootStore.setEndpointForm(fetchedSettings.endpointForm);
-		rootStore.setEndpointFormTest(fetchedSettings.endpointFormTest);
-		rootStore.setEndpointFormWaiting(fetchedSettings.endpointFormWaiting);
-		rootStore.setEndpointWebhook(fetchedSettings.endpointWebhook);
-		rootStore.setEndpointWebhookTest(fetchedSettings.endpointWebhookTest);
-		rootStore.setEndpointWebhookWaiting(fetchedSettings.endpointWebhookWaiting);
-		rootStore.setEndpointMcp(fetchedSettings.endpointMcp);
-		rootStore.setEndpointMcpTest(fetchedSettings.endpointMcpTest);
-		rootStore.setTimezone(fetchedSettings.timezone);
-		rootStore.setExecutionTimeout(fetchedSettings.executionTimeout);
-		rootStore.setMaxExecutionTimeout(fetchedSettings.maxExecutionTimeout);
-		rootStore.setInstanceId(fetchedSettings.instanceId);
-		rootStore.setOauthCallbackUrls(fetchedSettings.oauthCallbackUrls);
-		rootStore.setN8nMetadata(fetchedSettings.n8nMetadata || {});
-		rootStore.setDefaultLocale(fetchedSettings.defaultLocale);
-		rootStore.setBinaryDataMode(fetchedSettings.binaryDataMode);
+			setSettings(fetchedSettings);
+			settings.value.communityNodesEnabled = fetchedSettings.communityNodesEnabled;
+			settings.value.unverifiedCommunityNodesEnabled =
+				fetchedSettings.unverifiedCommunityNodesEnabled;
+			setAllowedModules(fetchedSettings.allowedModules);
+			setSaveDataErrorExecution(fetchedSettings.saveDataErrorExecution);
+			setSaveDataSuccessExecution(fetchedSettings.saveDataSuccessExecution);
+			setSaveDataProgressExecution(fetchedSettings.saveExecutionProgress);
+			setSaveManualExecutions(fetchedSettings.saveManualExecutions);
 
-		if (fetchedSettings.telemetry.enabled) {
-			void eventsApi.sessionStarted(rootStore.restApiContext);
+			isMFAEnforced.value = settings.value.mfa?.enforced ?? false;
+
+			rootStore.setUrlBaseWebhook(fetchedSettings.urlBaseWebhook);
+			rootStore.setUrlBaseEditor(fetchedSettings.urlBaseEditor);
+			rootStore.setEndpointForm(fetchedSettings.endpointForm);
+			rootStore.setEndpointFormTest(fetchedSettings.endpointFormTest);
+			rootStore.setEndpointFormWaiting(fetchedSettings.endpointFormWaiting);
+			rootStore.setEndpointWebhook(fetchedSettings.endpointWebhook);
+			rootStore.setEndpointWebhookTest(fetchedSettings.endpointWebhookTest);
+			rootStore.setEndpointWebhookWaiting(fetchedSettings.endpointWebhookWaiting);
+			rootStore.setEndpointMcp(fetchedSettings.endpointMcp);
+			rootStore.setEndpointMcpTest(fetchedSettings.endpointMcpTest);
+			rootStore.setTimezone(fetchedSettings.timezone);
+			rootStore.setExecutionTimeout(fetchedSettings.executionTimeout);
+			rootStore.setMaxExecutionTimeout(fetchedSettings.maxExecutionTimeout);
+			rootStore.setInstanceId(fetchedSettings.instanceId);
+			rootStore.setOauthCallbackUrls(fetchedSettings.oauthCallbackUrls);
+			rootStore.setN8nMetadata(fetchedSettings.n8nMetadata || {});
+			rootStore.setDefaultLocale(fetchedSettings.defaultLocale);
+			rootStore.setBinaryDataMode(fetchedSettings.binaryDataMode);
+
+			if (fetchedSettings.telemetry.enabled) {
+				void eventsApi.sessionStarted(rootStore.restApiContext);
+			}
+		} catch (error) {
+			console.error('Error fetching settings:', error);
+			throw error;
 		}
 	};
 

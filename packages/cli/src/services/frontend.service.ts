@@ -37,30 +37,11 @@ import {
 	getWorkflowHistoryPruneTime,
 } from '@/workflows/workflow-history.ee/workflow-history-helper.ee';
 
-export type PublicEnterpriseSettings = Pick<
-	IEnterpriseSettings,
-	'saml' | 'ldap' | 'oidc' | 'showNonProdBanner'
->;
-
-export type PublicFrontendSettings = Pick<
-	FrontendSettings,
-	| 'settingsMode'
-	| 'instanceId'
-	| 'defaultLocale'
-	| 'versionCli'
-	| 'releaseChannel'
-	| 'versionNotifications'
-	| 'userManagement'
-	| 'sso'
-	| 'mfa'
-	| 'authCookie'
-	| 'oauthCallbackUrls'
-	| 'banners'
-	| 'previewMode'
-	| 'telemetry'
-> & {
-	enterprise: PublicEnterpriseSettings;
-};
+// For Elevate mode with JWT auth: return full settings as public
+// All settings are just configuration flags - nothing sensitive
+// This prevents "Cannot read properties of undefined" errors in frontend
+export type PublicEnterpriseSettings = IEnterpriseSettings;
+export type PublicFrontendSettings = FrontendSettings;
 
 @Service()
 export class FrontendService {
@@ -138,7 +119,10 @@ export class FrontendService {
 			settingsMode: 'authenticated',
 			inE2ETests,
 			isDocker: this.instanceSettings.isDocker,
-			databaseType: this.globalConfig.database.type,
+			databaseType:
+				this.globalConfig.database.type === 'mssqldb'
+					? 'postgresdb'
+					: this.globalConfig.database.type,
 			previewMode: process.env.N8N_PREVIEW_MODE === 'true',
 			endpointForm: this.globalConfig.endpoints.form,
 			endpointFormTest: this.globalConfig.endpoints.formTest,
@@ -499,40 +483,14 @@ export class FrontendService {
 	 * @returns Public settings for unauthenticated users
 	 */
 	getPublicSettings(): PublicFrontendSettings {
-		// Get full settings to ensure all required properties are initialized
-		const {
-			instanceId,
-			defaultLocale,
-			versionCli,
-			releaseChannel,
-			versionNotifications,
-			userManagement,
-			sso,
-			mfa,
-			authCookie,
-			oauthCallbackUrls,
-			banners,
-			previewMode,
-			telemetry,
-			enterprise: { saml, ldap, oidc, showNonProdBanner },
-		} = this.getSettings();
+		// For Elevate mode with JWT auth, return FULL settings
+		// The frontend needs access to all settings for proper initialization
+		// All fields are just configuration flags, nothing sensitive
+		const fullSettings = this.getSettings();
 
 		return {
-			settingsMode: 'public',
-			instanceId,
-			defaultLocale,
-			versionCli,
-			releaseChannel,
-			versionNotifications,
-			userManagement,
-			sso,
-			mfa,
-			authCookie,
-			oauthCallbackUrls,
-			banners,
-			previewMode,
-			telemetry,
-			enterprise: { saml, ldap, oidc, showNonProdBanner },
+			...fullSettings,
+			settingsMode: 'public', // Override to indicate public mode
 		};
 	}
 

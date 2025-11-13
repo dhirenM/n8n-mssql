@@ -228,10 +228,32 @@ export class Server extends AbstractServer {
 		// Parse cookies for easier access
 		this.app.use(cookieParser());
 
+		// ============================================================
+		// Multi-Tenant Middleware (for Voyager DB per subdomain)
+		// ============================================================
+		if (process.env.ENABLE_MULTI_TENANT === 'true') {
+			const { requestContextMiddleware } = await import('@/middlewares/requestContext');
+			const { subdomainValidationMiddleware } = await import(
+				'@/middlewares/subdomain-validation.middleware'
+			);
+			const { dotnetJwtAuthMiddleware } = await import('@/middlewares/dotnet-jwt-auth.middleware');
+
+			this.app.use(requestContextMiddleware as any); // Setup AsyncLocalStorage
+			this.app.use(subdomainValidationMiddleware as any); // Validate subdomain → get Voyager DB
+			this.app.use(dotnetJwtAuthMiddleware as any); // Validate .NET JWT tokens
+
+			this.logger.info('✅ Multi-tenant middleware registered');
+		}
+
 		const { restEndpoint, app } = this;
 
+		// Calculate basePath for push endpoint (same as other routes)
+		const basePath =
+			this.globalConfig.path === '/' ? '' : this.globalConfig.path.replace(/\/$/, '');
+		const pushEndpoint = basePath ? `${basePath}/${restEndpoint}` : restEndpoint;
+
 		const push = Container.get(Push);
-		push.setupPushHandler(restEndpoint, app);
+		push.setupPushHandler(pushEndpoint, app);
 
 		if (push.isBidirectional) {
 			const { CollaborationService } = await import('@/collaboration/collaboration.service');
@@ -264,8 +286,9 @@ export class Server extends AbstractServer {
 		// ----------------------------------------
 
 		// Returns all the available timezones
+		// Note: basePath already declared above for push endpoint
 		const tzDataFile = resolve(CLI_DIR, 'dist/timezones.json');
-		this.app.get(`/${this.restEndpoint}/options/timezones`, (_, res) =>
+		this.app.get(`${basePath}/${this.restEndpoint}/options/timezones`, (_, res) =>
 			res.sendFile(tzDataFile, { dotfiles: 'allow' }),
 		);
 
@@ -435,6 +458,12 @@ export class Server extends AbstractServer {
 				...this.globalConfig.endpoints.additionalNonUIRoutes.split(':'),
 			].filter((u) => !!u);
 			const nonUIRoutesRegex = new RegExp(`^/(${nonUIRoutes.join('|')})/?.*$`);
+
+			// Static asset paths that should NOT be caught by history API handler
+			const staticAssetPaths = /^\/(static|assets|types|icons|fonts|images)\//;
+			const staticAssetExtensions =
+				/\.(js|css|json|wasm|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot)$/i;
+
 			const historyApiHandler: express.RequestHandler = (req, res, next) => {
 				const {
 					method,
@@ -444,7 +473,8 @@ export class Server extends AbstractServer {
 					method === 'GET' &&
 					accept &&
 					(accept.includes('text/html') || accept.includes('*/*')) &&
-					!req.path.endsWith('.wasm') &&
+					!staticAssetPaths.test(req.path) && // ✅ Exclude static asset paths
+					!staticAssetExtensions.test(req.path) && // ✅ Exclude static file extensions
 					!nonUIRoutesRegex.test(req.path)
 				) {
 					res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, proxy-revalidate');
@@ -461,8 +491,12 @@ export class Server extends AbstractServer {
 				}
 			};
 
+			// Mount static files at the correct base path
+			const basePath =
+				this.globalConfig.path === '/' ? '/' : this.globalConfig.path.replace(/\/$/, '');
+
 			this.app.use(
-				'/',
+				basePath,
 				historyApiHandler,
 				express.static(staticCacheDir, {
 					...cacheOptions,
@@ -471,7 +505,10 @@ export class Server extends AbstractServer {
 				express.static(EDITOR_UI_DIST_DIR, cacheOptions),
 			);
 		} else {
-			this.app.use('/', express.static(staticCacheDir, cacheOptions));
+			// In non-production, also use correct base path
+			const basePath =
+				this.globalConfig.path === '/' ? '/' : this.globalConfig.path.replace(/\/$/, '');
+			this.app.use(basePath, express.static(staticCacheDir, cacheOptions));
 		}
 
 		installGlobalProxyAgent();
@@ -482,13 +519,73 @@ export class Server extends AbstractServer {
 		const authService = Container.get(AuthService);
 
 		if (frontendService) {
+			// Build the full path including base path
+			const basePath =
+				this.globalConfig.path === '/' ? '' : this.globalConfig.path.replace(/\/$/, '');
+			const settingsPath = `${basePath}/${this.restEndpoint}/settings`;
+
+			this.logger.info(`Registering settings route at: ${settingsPath}`);
+
+			// Get push configuration
+			const { PushConfig } = require('@/push/push.config');
+			const pushConfig = Container.get(PushConfig) as { backend: 'sse' | 'websocket' };
+
 			// Returns the current settings for the UI
 			this.app.get(
-				`/${this.restEndpoint}/settings`,
+				settingsPath,
 				authService.createAuthMiddleware({ allowSkipMFA: false, allowUnauthenticated: true }),
 				ResponseHelper.send(async (req: AuthenticatedRequest) => {
-					return req.user ? frontendService.getSettings() : frontendService.getPublicSettings();
-				}),
+					try {
+						const settings = req.user
+							? await frontendService.getSettings()
+							: await frontendService.getPublicSettings();
+						this.logger.debug('Settings returned successfully', { hasSettings: !!settings });
+
+						// CRITICAL FIX: Ensure pushBackend is included in settings
+						// Frontend needs this to know whether to use WebSocket or SSE
+						if (!(settings as any).pushBackend) {
+							(settings as any).pushBackend = pushConfig.backend;
+							this.logger.debug('Injected pushBackend into settings', {
+								pushBackend: pushConfig.backend,
+							});
+						}
+
+						return settings;
+					} catch (error) {
+						this.logger.error('Error loading frontend settings', error);
+						// Return minimal settings to prevent frontend crash
+						return {
+							settingsMode: 'public',
+							pushBackend: pushConfig.backend as 'sse' | 'websocket', // CRITICAL: Include pushBackend!
+							instanceId: 'unknown',
+							defaultLocale: 'en',
+							versionCli: '1.0.0',
+							sso: {
+								saml: { loginEnabled: false, loginLabel: '' },
+								ldap: { loginEnabled: false, loginLabel: '' },
+								oidc: { loginEnabled: false, loginUrl: '', callbackUrl: '' },
+							},
+							enterprise: {
+								saml: false,
+								ldap: false,
+								oidc: false,
+								showNonProdBanner: false,
+							},
+							userManagement: {
+								quota: -1,
+								showSetupOnFirstLoad: false,
+								smtpSetup: false,
+								authenticationMethod: 'email',
+							},
+							mfa: { enabled: false, enforced: false },
+							authCookie: { secure: false },
+							oauthCallbackUrls: { oauth1: '', oauth2: '' },
+							banners: { dismissed: [] },
+							previewMode: false,
+							telemetry: { enabled: false },
+						};
+					}
+				}, true), // ← raw: true to prevent data wrapping
 			);
 		}
 	}
@@ -510,7 +607,13 @@ export class Server extends AbstractServer {
 
 	protected setupPushServer(): void {
 		const { restEndpoint, server, app } = this;
-		Container.get(Push).setupPushServer(restEndpoint, server, app);
+
+		// Include basePath for push endpoint (same as REST routes)
+		const basePath =
+			this.globalConfig.path === '/' ? '' : this.globalConfig.path.replace(/\/$/, '');
+		const pushEndpoint = basePath ? `${basePath}/${restEndpoint}` : restEndpoint;
+
+		Container.get(Push).setupPushServer(pushEndpoint, server, app);
 		Container.get(ChatServer).setup(server, app);
 	}
 }

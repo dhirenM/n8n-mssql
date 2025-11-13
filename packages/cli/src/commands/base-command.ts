@@ -97,12 +97,37 @@ export abstract class BaseCommand<F = never> {
 		this.nodeTypes = Container.get(NodeTypes);
 		await Container.get(LoadNodesAndCredentials).init();
 
+		// ============================================================
+		// Multi-Tenant: Initialize Both Elevate and Default Voyager DB
+		// ============================================================
+		const isElevateMode = process.env.IS_ELEVATE === 'true';
+		const isMultiTenantMode = process.env.ENABLE_MULTI_TENANT === 'true';
+
+		if (isElevateMode || isMultiTenantMode) {
+			try {
+				// 1. Initialize Elevate DB (for company lookups)
+				const { initializeElevateDataSource } = await import('@/databases/elevate.datasource');
+				await initializeElevateDataSource();
+				this.logger.info('✅ Elevate DataSource initialized for multi-tenant support');
+			} catch (error) {
+				this.logger.error('❌ Failed to initialize Elevate DataSource', { error });
+				throw error;
+			}
+		}
+
+		// 2. Initialize default Voyager DB (for CLI, migrations, AuthRolesService)
+		// HTTP requests will override this with subdomain-specific DataSource via proxy
 		await this.dbConnection
 			.init()
 			.catch(
 				async (error: Error) =>
 					await this.exitWithCrash('There was an error initializing DB', error),
 			);
+
+		if (isElevateMode || isMultiTenantMode) {
+			this.logger.info('✅ Default Voyager DB initialized (for CLI and background tasks)');
+			this.logger.info('   HTTP requests will use subdomain-specific Voyager DataSource');
+		}
 
 		// This needs to happen after DB.init() or otherwise DB Connection is not
 		// available via the dependency Container that services depend on.
@@ -112,6 +137,7 @@ export abstract class BaseCommand<F = never> {
 
 		await this.server?.init();
 
+		// Run migrations on default Voyager DB
 		await this.dbConnection
 			.migrate()
 			.catch(
@@ -119,8 +145,27 @@ export abstract class BaseCommand<F = never> {
 					await this.exitWithCrash('There was an error running database migrations', error),
 			);
 
+		if (isElevateMode || isMultiTenantMode) {
+			this.logger.info('✅ Migrations completed on default Voyager DB');
+			this.logger.info('   Other Voyager DBs need migrations run separately');
+		}
+
 		// Initialize the auth roles service to make sure that roles are correctly setup for the instance
 		await Container.get(AuthRolesService).init();
+
+		// ============================================================
+		// Multi-Tenant: Install DataSource Proxy
+		// ============================================================
+		if (process.env.ENABLE_MULTI_TENANT === 'true') {
+			try {
+				const { installDataSourceProxy } = await import('@/databases/datasource.proxy');
+				installDataSourceProxy();
+				this.logger.info('✅ Multi-tenant DataSource proxy installed');
+			} catch (error) {
+				this.logger.error('❌ Failed to install DataSource proxy', { error });
+				throw error;
+			}
+		}
 
 		if (process.env.EXECUTIONS_PROCESS === 'own') process.exit(-1);
 

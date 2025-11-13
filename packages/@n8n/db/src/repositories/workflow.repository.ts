@@ -155,6 +155,8 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 				name: true,
 			},
 			filter: options.filter,
+			// MSSQL FIX: Don't pass sortBy to CTEs - MSSQL doesn't allow ORDER BY in CTEs
+			// Sorting will be applied to the final UNION result instead
 		};
 
 		const columnNames = [...Object.keys(subQueryParameters.select ?? {}), 'resource'];
@@ -163,14 +165,14 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 			options.sortBy ?? 'updatedAt:asc',
 		);
 
+		// MSSQL FIX: Skip sorting in CTEs (MSSQL doesn't allow ORDER BY in CTEs)
+		// Sorting will be applied to the final UNION result instead
 		const foldersQuery = this.folderRepository
-			.getManyQuery(subQueryParameters)
+			.getManyQuery(subQueryParameters, true) // skipSorting = true
 			.addSelect("'folder'", 'resource');
 
-		const workflowsQuery = this.getManyQuery(workflowIds, subQueryParameters).addSelect(
-			"'workflow'",
-			'resource',
-		);
+		const workflowsQuery = this.getManyQuery(workflowIds, subQueryParameters, true) // skipSorting = true
+			.addSelect("'workflow'", 'resource');
 
 		const qb = this.manager.createQueryBuilder();
 
@@ -260,10 +262,12 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 		query: SelectQueryBuilder<any>,
 		pagination: { take?: number; skip: number },
 	) {
+		// TypeORM now handles MSSQL pagination correctly (patched SelectQueryBuilder.js)
 		if (pagination.take) {
-			query.take(pagination.take);
+			query.skip(pagination.skip || 0).take(pagination.take);
+		} else if (pagination.skip > 0) {
+			query.skip(pagination.skip);
 		}
-		query.skip(pagination.skip);
 	}
 
 	private removeNameLowerFromResults(results: WorkflowFolderUnionRow[]) {
@@ -409,13 +413,22 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 		return { workflows, count };
 	}
 
-	getManyQuery(workflowIds: string[], options: ListQuery.Options = {}) {
+	getManyQuery(
+		workflowIds: string[],
+		options: ListQuery.Options = {},
+		skipSorting: boolean = false,
+	) {
 		const qb = this.createBaseQuery(workflowIds);
 
 		this.applyFilters(qb, options.filter);
 		this.applySelect(qb, options.select);
 		this.applyRelations(qb, options.select);
-		this.applySorting(qb, options.sortBy);
+
+		// Skip sorting if this query will be used in a CTE (for MSSQL compatibility)
+		if (!skipSorting) {
+			this.applySorting(qb, options.sortBy);
+		}
+
 		this.applyPagination(qb, options);
 
 		return qb;
@@ -698,6 +711,7 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 		qb: SelectQueryBuilder<WorkflowEntity>,
 		options: ListQuery.Options,
 	): void {
+		// TypeORM now handles MSSQL pagination correctly (patched SelectQueryBuilder.js)
 		if (options?.take) {
 			qb.skip(options.skip ?? 0).take(options.take);
 		}

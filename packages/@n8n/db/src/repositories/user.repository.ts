@@ -292,6 +292,7 @@ export class UserRepository extends Repository<User> {
 		take: number,
 		skip: number | undefined,
 	): SelectQueryBuilder<User> {
+		// TypeORM now handles MSSQL pagination correctly (patched SelectQueryBuilder.js)
 		if (take >= 0) queryBuilder.take(take);
 		if (skip) queryBuilder.skip(skip);
 

@@ -14,6 +14,7 @@ import legacy from '@vitejs/plugin-legacy';
 import browserslist from 'browserslist';
 import { isLocaleFile, sendLocaleUpdate } from './vite/i18n-locales-hmr-helpers';
 import { nodePopularityPlugin } from './vite/vite-plugin-node-popularity.mjs';
+import { basePathPlugin } from './vite/base-path-plugin.mjs';
 
 const publicPath = process.env.VUE_APP_PUBLIC_PATH || '/';
 
@@ -78,6 +79,7 @@ const alias = [
 const { RELEASE: release } = process.env;
 
 const plugins: UserConfig['plugins'] = [
+	basePathPlugin(publicPath),  // Replace BASE_PATH placeholders in index.html
 	nodePopularityPlugin(),
 	icons({
 		compiler: 'vue3',
@@ -136,7 +138,7 @@ const plugins: UserConfig['plugins'] = [
 			return ctx.server
 				? html
 						.replace('%CONFIG_TAGS%', '')
-						.replaceAll('/{{BASE_PATH}}', '//localhost:5678')
+						.replaceAll('/{{BASE_PATH}}/', publicPath)  // Use the actual base path
 						.replaceAll('/{{REST_ENDPOINT}}', '/rest')
 				: html;
 		},
@@ -190,10 +192,12 @@ export default mergeConfig(
 			// ...(NODE_ENV !== 'test' ? { 'global': 'globalThis' } : {}),
 			...(NODE_ENV === 'development' ? { 'process.env': {} } : {}),
 			BASE_PATH: `'${publicPath}'`,
+			// Multi-tenant mode for Elevate/Virtuoso.ai deployments
+			'import.meta.env.VITE_MULTI_TENANT_ENABLED': JSON.stringify(process.env.VITE_MULTI_TENANT_ENABLED || 'false'),
 		},
 		plugins,
 		resolve: { alias },
-		base: publicPath,
+		base: publicPath,  // Always use /n8nnet/
 		envPrefix: ['VUE', 'N8N_ENV_FEAT'],
 		css: {
 			preprocessorOptions: {
@@ -212,12 +216,32 @@ export default mergeConfig(
 			target,
 		},
 		optimizeDeps: {
+			include: ['sanitize-html'],
 			esbuildOptions: {
 				target,
 			},
 		},
 		worker: {
 			format: 'es',
+		},
+		server: {
+			host: '0.0.0.0',
+			port: 8080,
+			allowedHosts: [
+				'localhost',
+				'cmqacore.elevatelocal.com',
+				'.elevatelocal.com',  // Allow all subdomains
+			],
+			proxy: {
+				// Proxy all backend requests to n8n backend
+				// Keep the /n8nnet prefix when forwarding
+				'^/n8nnet/(rest|api|webhook|form|static|types|healthz|metrics|icons)': {
+					target: 'http://localhost:5678',
+					changeOrigin: true,
+					ws: true,  // WebSocket support
+					// Don't rewrite - keep /n8nnet/ in the path
+				},
+			},
 		},
 	}),
 	vitestConfig,

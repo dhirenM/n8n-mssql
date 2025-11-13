@@ -552,12 +552,13 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 		];
 
 		if (pruneDataMaxCount > 0) {
+			// TypeORM now handles MSSQL pagination correctly (patched SelectQueryBuilder.js)
 			const executions = await this.createQueryBuilder('execution')
 				.select('execution.id')
 				.where('execution.id NOT IN ' + annotatedExecutionsSubQuery.getQuery())
+				.orderBy('execution.id', 'DESC')
 				.skip(pruneDataMaxCount)
 				.take(1)
-				.orderBy('execution.id', 'DESC')
 				.getMany();
 
 			if (executions[0]) {

@@ -4,7 +4,7 @@
 # This script logs all output to a file so you can review it
 # ==================================================
 
-$logFile = "C:\Git\n8n\n8n-mssql-startup.log"
+$logFile = "C:\Git\n8n-mssql\n8n-mssql-startup.log"
 
 # Function to log to both console and file
 function Write-Log {
@@ -83,7 +83,7 @@ Write-Log "Output is being logged to: $logFile" "Cyan"
 Write-Log "You can review it anytime with: Get-Content $logFile`n" "Cyan"
 
 # Navigate to CLI directory and start
-cd C:\Git\n8n\packages\cli
+cd C:\Git\n8n-mssql\packages\cli
 
 # Start n8n and capture output to both console and log file
 pnpm dev 2>&1 | Tee-Object -FilePath $logFile -Append

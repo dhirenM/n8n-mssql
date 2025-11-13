@@ -1,3 +1,4 @@
+export { BaseRepository } from './base.repository';
 export { AnnotationTagMappingRepository } from './annotation-tag-mapping.repository.ee';
 export { AnnotationTagRepository } from './annotation-tag.repository.ee';
 export { ApiKeyRepository } from './api-key.repository';

@@ -25,12 +25,20 @@ export class FolderRepository extends Repository<Folder> {
 		return (await query.getMany()) as unknown as FolderWithWorkflowAndSubFolderCountAndPath[];
 	}
 
-	getManyQuery(options: ListQuery.Options = {}): SelectQueryBuilder<Folder> {
+	getManyQuery(
+		options: ListQuery.Options = {},
+		skipSorting: boolean = false,
+	): SelectQueryBuilder<Folder> {
 		const query = this.createQueryBuilder('folder');
 
 		this.applySelections(query, options.select, options.filter);
 		this.applyFilters(query, options.filter);
-		this.applySorting(query, options.sortBy);
+
+		// Skip sorting if this query will be used in a CTE (for MSSQL compatibility)
+		if (!skipSorting) {
+			this.applySorting(query, options.sortBy);
+		}
+
 		this.applyPagination(query, options);
 
 		return query;
@@ -252,6 +260,7 @@ export class FolderRepository extends Repository<Folder> {
 	}
 
 	private applyPagination(query: SelectQueryBuilder<Folder>, options: ListQuery.Options): void {
+		// TypeORM now handles MSSQL pagination correctly (patched SelectQueryBuilder.js)
 		if (options?.take) {
 			query.skip(options.skip ?? 0).take(options.take);
 		}

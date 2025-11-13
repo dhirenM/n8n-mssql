@@ -117,6 +117,7 @@
     "@sentry/node": "catalog:",
     "aws4": "1.11.0",
     "axios": "catalog:",
+    "base64url": "^3.0.1",
     "bcryptjs": "2.4.3",
     "bull": "4.16.4",
     "cache-manager": "5.2.3",

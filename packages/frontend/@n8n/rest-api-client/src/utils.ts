@@ -10,7 +10,17 @@ import type { IRestApiContext } from './types';
 const getBrowserId = () => {
 	let browserId = localStorage.getItem(BROWSER_ID_STORAGE_KEY);
 	if (!browserId) {
-		browserId = crypto.randomUUID();
+		// Use crypto.randomUUID() if available, otherwise fallback to alternative
+		if (crypto && typeof crypto.randomUUID === 'function') {
+			browserId = crypto.randomUUID();
+		} else {
+			// Fallback UUID v4 generator for older browsers
+			browserId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+				const r = (Math.random() * 16) | 0;
+				const v = c === 'x' ? r : (r & 0x3) | 0x8;
+				return v.toString(16);
+			});
+		}
 		localStorage.setItem(BROWSER_ID_STORAGE_KEY, browserId);
 	}
 	return browserId;

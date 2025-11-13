@@ -1,5 +1,5 @@
 import type { Scope } from '@n8n/permissions';
-import type { FindOperator } from '@n8n/typeorm';
+import type { DataSource, FindOperator } from '@n8n/typeorm';
 import type express from 'express';
 import type {
 	ICredentialsEncrypted,
@@ -387,6 +387,12 @@ export type AuthenticatedRequest<
 	headers: express.Request['headers'] & {
 		'push-ref': string;
 	};
+	/** Tenant-specific DataSource set by subdomain validation middleware */
+	dataSource?: DataSource;
+	/** Subdomain extracted from request hostname */
+	subdomain?: string;
+	/** JWT payload from .NET Core authentication */
+	dotnetJwtPayload?: any;
 };
 
 /**

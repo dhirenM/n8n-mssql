@@ -1,11 +1,12 @@
 /**
  * MSSQL Migrations
- * 
+ *
  * Note: MSSQL support is EXPERIMENTAL and not officially supported by n8n.
- * 
- * For initial setup, you must manually run the schema creation script:
- * - n8n_schema_idempotent.sql (located in your SQL Server Management Studio folder)
- * 
+ *
+ * The initial schema is created by the InitialMSSQLSchema migration.
+ * Alternatively, you can manually run the schema creation script:
+ * - n8n_schema_initialization.sql (located in this folder)
+ *
  * After the initial schema is created, these migrations will handle future updates.
  * Most migrations are shared with MySQL in the ../common folder.
  */
@@ -75,19 +76,18 @@ import { CreateWorkflowDependencyTable1760314000000 } from '../common/1760314000
 
 /**
  * MSSQL Migration List
- * 
+ *
  * IMPORTANT: Before running n8n with MSSQL:
- * 1. Manually create the database schema using n8n_schema_idempotent.sql
+ * 1. Manually run n8n_schema_initialization.sql to create the 'n8n' schema and all base tables
  * 2. Set DB_TYPE=mssqldb in your environment variables
- * 3. Configure MSSQL connection settings (see below)
- * 
- * Note: The initial migrations (before 1674509946020) are not included here
- * because they are MySQL/Postgres specific. The base schema must be created
- * manually using the provided SQL script.
+ * 3. Configure MSSQL connection settings
+ *
+ * The initial schema MUST be created manually using the SQL script:
+ * packages/@n8n/db/src/migrations/mssqldb/n8n_schema_initialization.sql
  */
 export const mssqlMigrations: Migration[] = [
+	// Common migrations that are shared with MySQL (start from 2023)
 	// Note: Initial schema setup is done via manual SQL script
-	// These migrations start from 2023 onwards (after base schema is in place)
 	CreateLdapEntities1674509946020,
 	PurgeInvalidWorkflowConnections1675940580449,
 	RemoveResetPasswordColumns1690000000030,
@@ -148,4 +148,3 @@ export const mssqlMigrations: Migration[] = [
 	UniqueRoleNames1760020838000,
 	CreateWorkflowDependencyTable1760314000000,
 ];
-

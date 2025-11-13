@@ -14,6 +14,9 @@ import './n8n-theme.scss';
 // Ensure i18n HMR owner is evaluated as early as possible in dev
 import '@/dev/i18nHmr';
 
+// Initialize multi-tenant axios interceptor (if enabled)
+import { setupAxiosInterceptor, initializeAuthSync } from '@/plugins/axios-interceptor';
+
 import App from '@/App.vue';
 import router from './router';
 
@@ -29,6 +32,11 @@ import { SentryPlugin } from '@/app/plugins/sentry';
 import { registerModuleRoutes } from '@/app/moduleInitializer/moduleInitializer';
 
 import type { VueScanOptions } from 'z-vue-scan';
+
+// Initialize multi-tenant support (if enabled via environment variable)
+// This must be done before any axios requests are made
+initializeAuthSync();
+setupAxiosInterceptor();
 
 const pinia = createPinia();
 

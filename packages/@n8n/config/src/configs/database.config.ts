@@ -120,6 +120,49 @@ class MysqlConfig {
 }
 
 @Config
+class MssqlConfig {
+	/** MSSQL database name */
+	@Env('DB_MSSQLDB_DATABASE')
+	database: string = 'n8n';
+
+	/** MSSQL database host */
+	@Env('DB_MSSQLDB_HOST')
+	host: string = 'localhost';
+
+	/** MSSQL database password */
+	@Env('DB_MSSQLDB_PASSWORD')
+	password: string = '';
+
+	/** MSSQL database port */
+	@Env('DB_MSSQLDB_PORT')
+	port: number = 1433;
+
+	/** MSSQL database user */
+	@Env('DB_MSSQLDB_USER')
+	user: string = 'sa';
+
+	/** MSSQL database schema */
+	@Env('DB_MSSQLDB_SCHEMA')
+	schema: string = 'dbo';
+
+	/** MSSQL connection pool size */
+	@Env('DB_MSSQLDB_POOL_SIZE')
+	poolSize: number = 10;
+
+	/** MSSQL connection timeout (ms) */
+	@Env('DB_MSSQLDB_CONNECTION_TIMEOUT')
+	connectionTimeoutMs: number = 20_000;
+
+	/** MSSQL encrypt connection */
+	@Env('DB_MSSQLDB_ENCRYPT')
+	encrypt: boolean = false;
+
+	/** MSSQL trust server certificate */
+	@Env('DB_MSSQLDB_TRUST_SERVER_CERTIFICATE')
+	trustServerCertificate: boolean = true;
+}
+
+@Config
 export class SqliteConfig {
 	/** SQLite database file name */
 	@Env('DB_SQLITE_DATABASE')
@@ -144,7 +187,7 @@ export class SqliteConfig {
 	executeVacuumOnStartup: boolean = false;
 }
 
-const dbTypeSchema = z.enum(['sqlite', 'mariadb', 'mysqldb', 'postgresdb']);
+const dbTypeSchema = z.enum(['sqlite', 'mariadb', 'mysqldb', 'postgresdb', 'mssqldb']);
 type DbType = z.infer<typeof dbTypeSchema>;
 
 @Config
@@ -183,4 +226,7 @@ export class DatabaseConfig {
 
 	@Nested
 	sqlite: SqliteConfig;
+
+	@Nested
+	mssqldb: MssqlConfig;
 }

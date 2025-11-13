@@ -62,12 +62,27 @@ export async function initializeCore() {
 	try {
 		await settingsStore.initialize();
 	} catch (error) {
+		console.error('Failed to initialize settings store:', error);
 		toast.showToast({
 			title: i18n.baseText('startupError'),
 			message: i18n.baseText('startupError.message'),
 			type: 'error',
 			duration: 0,
 		});
+		// Don't continue if settings failed to load
+		return;
+	}
+
+	// Safety check: Ensure settings are loaded before accessing
+	if (!settingsStore.settings?.sso) {
+		console.error('Settings not loaded properly - sso configuration missing');
+		toast.showToast({
+			title: 'Settings Error',
+			message: 'Failed to load application settings. Please refresh the page.',
+			type: 'error',
+			duration: 0,
+		});
+		return;
 	}
 
 	ssoStore.initialize({
