@@ -54,7 +54,7 @@ export async function saveCredential(
 	encryptedData: ICredentialsDb,
 ): Promise<CredentialsEntity> {
 	const projectRepository = Container.get(ProjectRepository);
-	const { manager: dbManager } = projectRepository;
+	const dbManager = projectRepository.getManager();
 	const result = await dbManager.transaction(async (transactionManager) => {
 		const savedCredential = await transactionManager.save<CredentialsEntity>(credential);
 

@@ -187,7 +187,7 @@ export const processUsers = async (
 	toDisableUsers: string[],
 ): Promise<void> => {
 	const userRepository = Container.get(UserRepository);
-	const { manager: dbManager } = userRepository;
+	const dbManager = userRepository.getManager();
 	await dbManager.transaction(async (transactionManager) => {
 		return await Promise.all([
 			...toCreateUsers.map(async ([ldapId, user]) => {

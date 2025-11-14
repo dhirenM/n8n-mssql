@@ -94,12 +94,44 @@ export class WorkflowsController {
 		// @ts-expect-error: We shouldn't accept this because it can
 		// mess with relations of other workflows
 		delete req.body.shared;
+		// Remove versionId from client - server always generates it
+		delete req.body.versionId;
 
 		const newWorkflow = new WorkflowEntity();
 
 		Object.assign(newWorkflow, req.body);
 
+		// Always generate a fresh versionId (server-side only)
 		newWorkflow.versionId = uuid();
+
+		// Ensure no empty strings for GUID fields (SQL Server will reject them)
+		if (!newWorkflow.id || newWorkflow.id === '') {
+			delete (newWorkflow as any).id; // Let DB auto-generate
+		}
+
+		// Clean up any other fields that might have empty strings where GUIDs expected
+		// SQL Server GUID fields cannot accept empty strings
+		const guidFields = ['id', 'versionId', 'parentFolderId'] as const;
+		for (const field of guidFields) {
+			if ((newWorkflow as any)[field] === '') {
+				delete (newWorkflow as any)[field];
+			}
+		}
+
+		// Clean up pinData - if it's empty object, set to null (SQL Server text field issue)
+		if (newWorkflow.pinData && Object.keys(newWorkflow.pinData).length === 0) {
+			newWorkflow.pinData = undefined;
+		}
+
+		// Clean up meta - if it's empty object, set to undefined
+		if (newWorkflow.meta && Object.keys(newWorkflow.meta).length === 0) {
+			newWorkflow.meta = undefined;
+		}
+
+		// Clean up staticData - if it's empty object, set to undefined
+		if (newWorkflow.staticData && Object.keys(newWorkflow.staticData).length === 0) {
+			newWorkflow.staticData = undefined;
+		}
 
 		await validateEntity(newWorkflow);
 
@@ -133,7 +165,8 @@ export class WorkflowsController {
 			}
 		}
 
-		const { manager: dbManager } = this.projectRepository;
+		// Use getManager() to get tenant-aware manager for transactions
+		const dbManager = this.projectRepository.getManager();
 
 		let project: Project | null;
 		const savedWorkflow = await dbManager.transaction(async (transactionManager) => {
@@ -158,6 +191,16 @@ export class WorkflowsController {
 			if (project === null) {
 				throw new UnexpectedError('No personal project found');
 			}
+
+			// Debug: Log workflow data being saved
+			this.logger.debug('[WorkflowController] Saving workflow with data:', {
+				id: newWorkflow.id,
+				versionId: newWorkflow.versionId,
+				name: newWorkflow.name,
+				projectId: project.id,
+				hasNodes: !!newWorkflow.nodes,
+				hasConnections: !!newWorkflow.connections,
+			});
 
 			const workflow = await transactionManager.save<WorkflowEntity>(newWorkflow);
 
@@ -356,6 +399,11 @@ export class WorkflowsController {
 
 		let updateData = new WorkflowEntity();
 		const { tags, parentFolderId, ...rest } = req.body;
+
+		// Clean up empty GUID fields before assignment (SQL Server rejects empty strings for GUID columns)
+		if (rest.versionId === '') delete rest.versionId;
+		if (rest.id === '') delete rest.id;
+
 		Object.assign(updateData, rest);
 
 		const isSharingEnabled = this.license.isSharingEnabled();
@@ -492,7 +540,7 @@ export class WorkflowsController {
 		}
 
 		let newShareeIds: string[] = [];
-		const { manager: dbManager } = this.projectRepository;
+		const dbManager = this.projectRepository.getManager();
 		await dbManager.transaction(async (trx) => {
 			const currentPersonalProjectIDs = workflow.shared
 				.filter((sw) => sw.role === 'workflow:editor')

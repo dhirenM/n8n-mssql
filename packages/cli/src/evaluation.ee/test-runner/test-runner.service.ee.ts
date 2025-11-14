@@ -532,7 +532,7 @@ export class TestRunnerService {
 		};
 
 		const abortSignal = abortController.signal;
-		const { manager: dbManager } = this.testRunRepository;
+		const dbManager = this.testRunRepository.getManager();
 
 		try {
 			// Update test run status
@@ -802,7 +802,7 @@ export class TestRunnerService {
 			abortController.abort();
 			this.abortControllers.delete(testRunId);
 		} else {
-			const { manager: dbManager } = this.testRunRepository;
+			const dbManager = this.testRunRepository.getManager();
 
 			// If there is no abort controller - just mark the test run and all its pending test case executions as cancelled
 			await dbManager.transaction(async (trx) => {

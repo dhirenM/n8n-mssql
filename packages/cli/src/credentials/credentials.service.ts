@@ -406,7 +406,7 @@ export class CredentialsService {
 
 		await this.externalHooks.run('credentials.create', [encryptedData]);
 
-		const { manager: dbManager } = this.credentialsRepository;
+		const dbManager = this.credentialsRepository.getManager();
 		const result = await dbManager.transaction(async (transactionManager) => {
 			const project =
 				projectId === undefined

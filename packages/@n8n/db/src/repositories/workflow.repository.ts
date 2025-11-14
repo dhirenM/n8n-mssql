@@ -1,6 +1,6 @@
 import { GlobalConfig } from '@n8n/config';
 import { Service } from '@n8n/di';
-import { DataSource, Repository, In, Like } from '@n8n/typeorm';
+import { DataSource, In, Like } from '@n8n/typeorm';
 import type {
 	SelectQueryBuilder,
 	UpdateResult,
@@ -13,6 +13,7 @@ import type {
 import { PROJECT_ROOT } from 'n8n-workflow';
 
 import { FolderRepository } from './folder.repository';
+import { BaseRepository } from './base.repository';
 import {
 	WebhookEntity,
 	TagEntity,
@@ -49,27 +50,29 @@ export type WorkflowFolderUnionFull = (
 };
 
 @Service()
-export class WorkflowRepository extends Repository<WorkflowEntity> {
+export class WorkflowRepository extends BaseRepository<WorkflowEntity> {
 	constructor(
 		dataSource: DataSource,
 		private readonly globalConfig: GlobalConfig,
 		private readonly folderRepository: FolderRepository,
 	) {
-		super(WorkflowEntity, dataSource.manager);
+		super(WorkflowEntity, dataSource);
 	}
 
 	async get(
 		where: FindOptionsWhere<WorkflowEntity>,
 		options?: { relations: string[] | FindOptionsRelations<WorkflowEntity> },
 	) {
-		return await this.findOne({
+		const em = this.getContextManager();
+		return await em.findOne(WorkflowEntity, {
 			where,
 			relations: options?.relations,
 		});
 	}
 
 	async getAllActiveIds() {
-		const result = await this.find({
+		const em = this.getContextManager();
+		const result = await em.find(WorkflowEntity, {
 			select: { id: true },
 			where: { active: true },
 			relations: { shared: { project: { projectRelations: true } } },
@@ -79,7 +82,8 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	}
 
 	async getActiveIds({ maxResults }: { maxResults?: number } = {}) {
-		const activeWorkflows = await this.find({
+		const em = this.getContextManager();
+		const activeWorkflows = await em.find(WorkflowEntity, {
 			select: ['id'],
 			where: { active: true },
 			// 'take' and 'order' are only needed when maxResults is provided:
@@ -89,37 +93,42 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	}
 
 	async getActiveCount() {
-		return await this.count({
+		const em = this.getContextManager();
+		return await em.count(WorkflowEntity, {
 			where: { active: true },
 		});
 	}
 
 	async findById(workflowId: string) {
-		return await this.findOne({
+		const em = this.getContextManager();
+		return await em.findOne(WorkflowEntity, {
 			where: { id: workflowId },
 			relations: { shared: { project: { projectRelations: true } } },
 		});
 	}
 
 	async findByIds(workflowIds: string[], { fields }: { fields?: string[] } = {}) {
+		const em = this.getContextManager();
 		const options: FindManyOptions<WorkflowEntity> = {
 			where: { id: In(workflowIds) },
 		};
 
 		if (fields?.length) options.select = fields as FindOptionsSelect<WorkflowEntity>;
 
-		return await this.find(options);
+		return await em.find(WorkflowEntity, options);
 	}
 
 	async getActiveTriggerCount() {
-		const totalTriggerCount = await this.sum('triggerCount', {
+		const em = this.getContextManager();
+		const totalTriggerCount = await em.sum(WorkflowEntity, 'triggerCount', {
 			active: true,
 		});
 		return totalTriggerCount ?? 0;
 	}
 
 	async updateWorkflowTriggerCount(id: string, triggerCount: number): Promise<UpdateResult> {
-		const qb = this.createQueryBuilder('workflow');
+		const em = this.getContextManager();
+		const qb = em.createQueryBuilder(WorkflowEntity, 'workflow');
 		const dbType = this.globalConfig.database.type;
 		return await qb
 			.update()
@@ -137,8 +146,10 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	}
 
 	async getWorkflowsWithEvaluationCount() {
+		const em = this.getContextManager();
 		// Count workflows having test runs
-		const totalWorkflowCount = await this.createQueryBuilder('workflow')
+		const totalWorkflowCount = await em
+			.createQueryBuilder(WorkflowEntity, 'workflow')
 			.innerJoin('workflow.testRuns', 'testrun')
 			.distinct(true)
 			.getCount();
@@ -174,7 +185,8 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 		const workflowsQuery = this.getManyQuery(workflowIds, subQueryParameters, true) // skipSorting = true
 			.addSelect("'workflow'", 'resource');
 
-		const qb = this.manager.createQueryBuilder();
+		const em = this.getContextManager();
+		const qb = em.createQueryBuilder();
 
 		return {
 			baseQuery: qb
@@ -718,40 +730,48 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	}
 
 	async findStartingWith(workflowName: string): Promise<Array<{ name: string }>> {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(WorkflowEntity, {
 			select: ['name'],
 			where: { name: Like(`${workflowName}%`) },
 		});
 	}
 
 	async findIn(workflowIds: string[]) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(WorkflowEntity, {
 			select: ['id', 'name'],
 			where: { id: In(workflowIds) },
 		});
 	}
 
 	async findWebhookBasedActiveWorkflows() {
-		return await (this.createQueryBuilder('workflow')
+		const em = this.getContextManager();
+		return await (em
+			.createQueryBuilder(WorkflowEntity, 'workflow')
 			.select('DISTINCT workflow.id, workflow.name')
 			.innerJoin(WebhookEntity, 'webhook_entity', 'workflow.id = webhook_entity.workflowId')
 			.execute() as Promise<Array<{ id: string; name: string }>>);
 	}
 
 	async updateActiveState(workflowId: string, newState: boolean) {
-		return await this.update({ id: workflowId }, { active: newState });
+		const em = this.getContextManager();
+		return await em.update(WorkflowEntity, { id: workflowId }, { active: newState });
 	}
 
 	async deactivateAll() {
-		return await this.update({ active: true }, { active: false });
+		const em = this.getContextManager();
+		return await em.update(WorkflowEntity, { active: true }, { active: false });
 	}
 
 	async activateAll() {
-		return await this.update({ active: false }, { active: true });
+		const em = this.getContextManager();
+		return await em.update(WorkflowEntity, { active: false }, { active: true });
 	}
 
 	async findByActiveState(activeState: boolean) {
-		return await this.findBy({ active: activeState });
+		const em = this.getContextManager();
+		return await em.findBy(WorkflowEntity, { active: activeState });
 	}
 
 	async moveAllToFolder(fromFolderId: string, toFolderId: string, tx: EntityManager) {
@@ -770,7 +790,9 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	}
 
 	async moveToFolder(workflowIds: string[], toFolderId: string) {
-		await this.update(
+		const em = this.getContextManager();
+		await em.update(
+			WorkflowEntity,
 			{ id: In(workflowIds) },
 			{ parentFolder: toFolderId === PROJECT_ROOT ? null : { id: toFolderId } },
 		);
@@ -779,7 +801,8 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	async findWorkflowsWithNodeType(nodeTypes: string[], includeNodes: boolean = false) {
 		if (!nodeTypes?.length) return [];
 
-		const qb = this.createQueryBuilder('workflow');
+		const em = this.getContextManager();
+		const qb = em.createQueryBuilder(WorkflowEntity, 'workflow');
 
 		const { whereClause, parameters } = buildWorkflowsByNodesQuery(
 			nodeTypes,
@@ -811,7 +834,8 @@ export class WorkflowRepository extends Repository<WorkflowEntity> {
 	 *
 	 */
 	async findWorkflowsNeedingIndexing(batchSize?: number): Promise<WorkflowEntity[]> {
-		const qb = this.createQueryBuilder('workflow');
+		const em = this.getContextManager();
+		const qb = em.createQueryBuilder(WorkflowEntity, 'workflow');
 		const workflowIdAlias = 'workflowId';
 		const maxVersionIdAlias = 'maxVersionId';
 		const depAlias = 'dep';

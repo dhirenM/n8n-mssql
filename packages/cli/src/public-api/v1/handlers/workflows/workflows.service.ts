@@ -66,7 +66,7 @@ export async function createWorkflow(
 	personalProject: Project,
 	role: WorkflowSharingRole,
 ): Promise<WorkflowEntity> {
-	const { manager: dbManager } = Container.get(SharedWorkflowRepository);
+	const dbManager = Container.get(SharedWorkflowRepository).getManager();
 	return await dbManager.transaction(async (transactionManager) => {
 		const newWorkflow = new WorkflowEntity();
 		Object.assign(newWorkflow, workflow);
@@ -130,7 +130,7 @@ export async function getWorkflowTags(workflowId: string) {
 }
 
 export async function updateTags(workflowId: string, newTags: string[]): Promise<void> {
-	const { manager: dbManager } = Container.get(SharedWorkflowRepository);
+	const dbManager = Container.get(SharedWorkflowRepository).getManager();
 	await dbManager.transaction(async (transactionManager) => {
 		const oldTags = await transactionManager.findBy(WorkflowTagMapping, { workflowId });
 		if (oldTags.length > 0) {

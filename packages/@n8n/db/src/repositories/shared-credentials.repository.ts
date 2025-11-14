@@ -1,19 +1,21 @@
 import { Service } from '@n8n/di';
 import type { CredentialSharingRole } from '@n8n/permissions';
 import type { EntityManager, FindOptionsWhere } from '@n8n/typeorm';
-import { DataSource, In, Not, Repository } from '@n8n/typeorm';
+import { DataSource, In, Not } from '@n8n/typeorm';
 
 import type { Project } from '../entities';
 import { SharedCredentials } from '../entities';
+import { BaseRepository } from './base.repository';
 
 @Service()
-export class SharedCredentialsRepository extends Repository<SharedCredentials> {
+export class SharedCredentialsRepository extends BaseRepository<SharedCredentials> {
 	constructor(dataSource: DataSource) {
-		super(SharedCredentials, dataSource.manager);
+		super(SharedCredentials, dataSource);
 	}
 
 	async findByCredentialIds(credentialIds: string[], role: CredentialSharingRole) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(SharedCredentials, {
 			relations: { credentials: true, project: { projectRelations: { user: true, role: true } } },
 			where: {
 				credentialsId: In(credentialIds),
@@ -23,7 +25,9 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 	}
 
 	async makeOwnerOfAllCredentials(project: Project) {
-		return await this.update(
+		const em = this.getContextManager();
+		return await em.update(
+			SharedCredentials,
 			{
 				projectId: Not(project.id),
 				role: 'credential:owner',
@@ -33,8 +37,8 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 	}
 
 	async makeOwner(credentialIds: string[], projectId: string, trx?: EntityManager) {
-		trx = trx ?? this.manager;
-		return await trx.upsert(
+		const em = trx ?? this.getContextManager();
+		return await em.upsert(
 			SharedCredentials,
 			credentialIds.map(
 				(credentialsId) =>
@@ -49,9 +53,9 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 	}
 
 	async deleteByIds(sharedCredentialsIds: string[], projectId: string, trx?: EntityManager) {
-		trx = trx ?? this.manager;
+		const em = trx ?? this.getContextManager();
 
-		return await trx.delete(SharedCredentials, {
+		return await em.delete(SharedCredentials, {
 			projectId,
 			credentialsId: In(sharedCredentialsIds),
 		});
@@ -61,8 +65,9 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 		projectIds: string[],
 		credentialsIds: string[],
 	): Promise<string[]> {
+		const em = this.getContextManager();
 		return (
-			await this.find({
+			await em.find(SharedCredentials, {
 				where: {
 					projectId: In(projectIds),
 					credentialsId: In(credentialsIds),
@@ -73,8 +78,9 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 	}
 
 	async findCredentialOwningProject(credentialsId: string) {
+		const em = this.getContextManager();
 		return (
-			await this.findOne({
+			await em.findOne(SharedCredentials, {
 				where: { credentialsId, role: 'credential:owner' },
 				relations: { project: true },
 			})
@@ -82,7 +88,8 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 	}
 
 	async getAllRelationsForCredentials(credentialIds: string[]) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(SharedCredentials, {
 			where: {
 				credentialsId: In(credentialIds),
 			},
@@ -94,9 +101,9 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 		where: FindOptionsWhere<SharedCredentials> = {},
 		trx?: EntityManager,
 	) {
-		trx = trx ?? this.manager;
+		const em = trx ?? this.getContextManager();
 
-		return await trx.find(SharedCredentials, {
+		return await em.find(SharedCredentials, {
 			where,
 			relations: {
 				credentials: {
@@ -112,9 +119,9 @@ export class SharedCredentialsRepository extends Repository<SharedCredentials> {
 		credentialRoles: string[],
 		trx?: EntityManager,
 	) {
-		trx = trx ?? this.manager;
+		const em = trx ?? this.getContextManager();
 
-		return await trx.find(SharedCredentials, {
+		return await em.find(SharedCredentials, {
 			where: {
 				role: In(credentialRoles),
 				project: {

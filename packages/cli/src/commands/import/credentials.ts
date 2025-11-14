@@ -82,7 +82,7 @@ export class ImportCredentialsCommand extends BaseCommand<z.infer<typeof flagsSc
 
 		const credentials = await this.readCredentials(flags.input, flags.separate);
 
-		const { manager: dbManager } = Container.get(ProjectRepository);
+		const dbManager = Container.get(ProjectRepository).getManager();
 		await dbManager.transaction(async (transactionManager) => {
 			this.transactionManager = transactionManager;
 

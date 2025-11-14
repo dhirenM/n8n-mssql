@@ -2,14 +2,15 @@ import type { UsersListFilterDto } from '@n8n/api-types';
 import { Service } from '@n8n/di';
 import { PROJECT_OWNER_ROLE_SLUG } from '@n8n/permissions';
 import type { DeepPartial, EntityManager, SelectQueryBuilder } from '@n8n/typeorm';
-import { Brackets, DataSource, In, IsNull, Not, Repository } from '@n8n/typeorm';
+import { Brackets, DataSource, In, IsNull, Not } from '@n8n/typeorm';
 
 import { ApiKey, Project, ProjectRelation, User } from '../entities';
+import { BaseRepository } from './base.repository';
 
 @Service()
-export class UserRepository extends Repository<User> {
+export class UserRepository extends BaseRepository<User> {
 	constructor(dataSource: DataSource) {
-		super(User, dataSource.manager);
+		super(User, dataSource);
 	}
 
 	async findManyByIds(
@@ -18,14 +19,17 @@ export class UserRepository extends Repository<User> {
 			includeRole: boolean;
 		},
 	) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(User, {
 			where: { id: In(userIds) },
 			relations: options?.includeRole ? ['role'] : undefined,
 		});
 	}
 
 	async findByApiKey(apiKey: string) {
-		const keyOwner = await this.createQueryBuilder('user')
+		const em = this.getContextManager();
+		const keyOwner = await em
+			.createQueryBuilder(User, 'user')
 			.innerJoin(ApiKey, 'apiKey', 'apiKey.userId = user.id')
 			.leftJoinAndSelect('user.role', 'role')
 			.leftJoinAndSelect('role.scopes', 'scopes')
@@ -45,12 +49,13 @@ export class UserRepository extends Repository<User> {
 	 * would be missing. test('does not use `Repository.update`, but
 	 * `Repository.save` instead'.
 	 */
-	async update(...args: Parameters<Repository<User>['update']>) {
+	async update(...args: Parameters<typeof BaseRepository.prototype.update>) {
 		return await super.update(...args);
 	}
 
 	async deleteAllExcept(user: User) {
-		await this.delete({ id: Not(user.id) });
+		const em = this.getContextManager();
+		await em.delete(User, { id: Not(user.id) });
 	}
 
 	async getByIds(transaction: EntityManager, ids: string[]) {
@@ -58,18 +63,21 @@ export class UserRepository extends Repository<User> {
 	}
 
 	async findManyByEmail(emails: string[]) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(User, {
 			where: { email: In(emails) },
 			select: ['email', 'password', 'id'],
 		});
 	}
 
 	async deleteMany(userIds: string[]) {
-		return await this.delete({ id: In(userIds) });
+		const em = this.getContextManager();
+		return await em.delete(User, { id: In(userIds) });
 	}
 
 	async findNonShellUser(email: string) {
-		return await this.findOne({
+		const em = this.getContextManager();
+		return await em.findOne(User, {
 			where: {
 				email,
 				password: Not(IsNull()),
@@ -80,8 +88,10 @@ export class UserRepository extends Repository<User> {
 
 	/** Counts the number of users in each role, e.g. `{ admin: 2, member: 6, owner: 1 }` */
 	async countUsersByRole() {
-		const escapedRoleSlug = this.manager.connection.driver.escape('roleSlug');
-		const rows = (await this.createQueryBuilder()
+		const em = this.getContextManager();
+		const escapedRoleSlug = em.connection.driver.escape('roleSlug');
+		const rows = (await em
+			.createQueryBuilder(User, 'user')
 			.select([escapedRoleSlug, `COUNT(${escapedRoleSlug}) as count`])
 			.groupBy(escapedRoleSlug)
 			.execute()) as Array<{ roleSlug: string; count: string }>;
@@ -98,7 +108,8 @@ export class UserRepository extends Repository<User> {
 	 * Get emails of users who have completed setup, by user IDs.
 	 */
 	async getEmailsByIds(userIds: string[]) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(User, {
 			select: ['id', 'email'],
 			where: { id: In(userIds), password: Not(IsNull()) },
 		});
@@ -136,7 +147,7 @@ export class UserRepository extends Repository<User> {
 		}
 		// TODO: use a transactions
 		// This is blocked by TypeORM having concurrency issues with transactions
-		return await createInner(this.manager);
+		return await createInner(this.getContextManager());
 	}
 
 	/**
@@ -145,7 +156,8 @@ export class UserRepository extends Repository<User> {
 	 * Returns null if the workflow does not exist or is owned by a team project.
 	 */
 	async findPersonalOwnerForWorkflow(workflowId: string): Promise<User | null> {
-		return await this.findOne({
+		const em = this.getContextManager();
+		return await em.findOne(User, {
 			where: {
 				projectRelations: {
 					role: { slug: PROJECT_OWNER_ROLE_SLUG },
@@ -162,7 +174,8 @@ export class UserRepository extends Repository<User> {
 	 * Returns null if the project does not exist or is not a personal project.
 	 */
 	async findPersonalOwnerForProject(projectId: string): Promise<User | null> {
-		return await this.findOne({
+		const em = this.getContextManager();
+		return await em.findOne(User, {
 			where: {
 				projectRelations: {
 					role: { slug: PROJECT_OWNER_ROLE_SLUG },
@@ -300,7 +313,8 @@ export class UserRepository extends Repository<User> {
 	}
 
 	buildUserQuery(listQueryOptions?: UsersListFilterDto): SelectQueryBuilder<User> {
-		const queryBuilder = this.createQueryBuilder('user');
+		const em = this.getContextManager();
+		const queryBuilder = em.createQueryBuilder(User, 'user');
 
 		queryBuilder.leftJoinAndSelect('user.authIdentities', 'authIdentities');
 

@@ -1,19 +1,21 @@
 import { Service } from '@n8n/di';
-import { DataSource, In, Repository, Like } from '@n8n/typeorm';
+import { DataSource, In, Like } from '@n8n/typeorm';
 import type { FindManyOptions } from '@n8n/typeorm';
 
 import { CredentialsEntity } from '../entities';
 import type { User } from '../entities';
 import type { ListQuery } from '../entities/types-db';
+import { BaseRepository } from './base.repository';
 
 @Service()
-export class CredentialsRepository extends Repository<CredentialsEntity> {
+export class CredentialsRepository extends BaseRepository<CredentialsEntity> {
 	constructor(dataSource: DataSource) {
-		super(CredentialsEntity, dataSource.manager);
+		super(CredentialsEntity, dataSource);
 	}
 
 	async findStartingWith(credentialName: string) {
-		return await this.find({
+		const em = this.getContextManager();
+		return await em.find(CredentialsEntity, {
 			select: ['name'],
 			where: { name: Like(`${credentialName}%`) },
 		});
@@ -23,13 +25,14 @@ export class CredentialsRepository extends Repository<CredentialsEntity> {
 		listQueryOptions?: ListQuery.Options & { includeData?: boolean; user?: User },
 		credentialIds?: string[],
 	) {
+		const em = this.getContextManager();
 		const findManyOptions = this.toFindManyOptions(listQueryOptions);
 
 		if (credentialIds) {
 			findManyOptions.where = { ...findManyOptions.where, id: In(credentialIds) };
 		}
 
-		return await this.find(findManyOptions);
+		return await em.find(CredentialsEntity, findManyOptions);
 	}
 
 	private toFindManyOptions(listQueryOptions?: ListQuery.Options & { includeData?: boolean }) {
@@ -120,6 +123,7 @@ export class CredentialsRepository extends Repository<CredentialsEntity> {
 	}
 
 	async getManyByIds(ids: string[], { withSharings } = { withSharings: false }) {
+		const em = this.getContextManager();
 		const findManyOptions: FindManyOptions<CredentialsEntity> = { where: { id: In(ids) } };
 
 		if (withSharings) {
@@ -130,14 +134,15 @@ export class CredentialsRepository extends Repository<CredentialsEntity> {
 			};
 		}
 
-		return await this.find(findManyOptions);
+		return await em.find(CredentialsEntity, findManyOptions);
 	}
 
 	/**
 	 * Find all credentials that are owned by a personal project.
 	 */
 	async findAllPersonalCredentials(): Promise<CredentialsEntity[]> {
-		return await this.findBy({ shared: { project: { type: 'personal' } } });
+		const em = this.getContextManager();
+		return await em.findBy(CredentialsEntity, { shared: { project: { type: 'personal' } } });
 	}
 
 	/**
@@ -148,7 +153,8 @@ export class CredentialsRepository extends Repository<CredentialsEntity> {
 	 * workflow.
 	 */
 	async findAllCredentialsForWorkflow(workflowId: string): Promise<CredentialsEntity[]> {
-		return await this.findBy({
+		const em = this.getContextManager();
+		return await em.findBy(CredentialsEntity, {
 			shared: { project: { sharedWorkflows: { workflowId } } },
 		});
 	}
@@ -160,6 +166,7 @@ export class CredentialsRepository extends Repository<CredentialsEntity> {
 	 * are part of this project.
 	 */
 	async findAllCredentialsForProject(projectId: string): Promise<CredentialsEntity[]> {
-		return await this.findBy({ shared: { projectId } });
+		const em = this.getContextManager();
+		return await em.findBy(CredentialsEntity, { shared: { projectId } });
 	}
 }

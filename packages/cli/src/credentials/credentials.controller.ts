@@ -323,7 +323,7 @@ export class CredentialsController {
 		let amountRemoved: number | null = null;
 		let newShareeIds: string[] = [];
 
-		const { manager: dbManager } = this.sharedCredentialsRepository;
+		const dbManager = this.sharedCredentialsRepository.getManager();
 		await dbManager.transaction(async (trx) => {
 			const currentProjectIds = credential.shared
 				.filter((sc) => sc.role === 'credential:user')

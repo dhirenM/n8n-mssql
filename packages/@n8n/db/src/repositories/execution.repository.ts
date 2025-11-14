@@ -17,7 +17,6 @@ import {
 	LessThanOrEqual,
 	MoreThanOrEqual,
 	Not,
-	Repository,
 	And,
 } from '@n8n/typeorm';
 import { DateUtils } from '@n8n/typeorm/util/DateUtils';
@@ -33,6 +32,7 @@ import type {
 import { ManualExecutionCancelledError, UnexpectedError } from 'n8n-workflow';
 
 import { ExecutionDataRepository } from './execution-data.repository';
+import { BaseRepository } from './base.repository';
 import {
 	AnnotationTagEntity,
 	AnnotationTagMapping,
@@ -129,7 +129,7 @@ const moreThanOrEqual = (date: string): unknown => {
 const MAX_UPDATE_BATCH_SIZE = 900;
 
 @Service()
-export class ExecutionRepository extends Repository<ExecutionEntity> {
+export class ExecutionRepository extends BaseRepository<ExecutionEntity> {
 	private hardDeletionBatchSize = 100;
 
 	constructor(
@@ -140,18 +140,20 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 		private readonly executionDataRepository: ExecutionDataRepository,
 		private readonly binaryDataService: BinaryDataService,
 	) {
-		super(ExecutionEntity, dataSource.manager);
+		super(ExecutionEntity, dataSource);
 	}
 
 	// Find all executions that are in the 'new' state but do not have associated execution data.
 	// These executions are considered invalid and will be marked as 'crashed'.
 	// Since there is no join in this query the returned ids are unique.
 	async findQueuedExecutionsWithoutData(): Promise<ExecutionEntity[]> {
-		return await this.createQueryBuilder('execution')
+		const em = this.getContextManager();
+		return await em
+			.createQueryBuilder(ExecutionEntity, 'execution')
 			.where('execution.status = :status', { status: 'new' })
 			.andWhere(
 				'NOT EXISTS (' +
-					this.manager
+					em
 						.createQueryBuilder()
 						.select('1')
 						.from(ExecutionData, 'execution_data')
@@ -368,7 +370,8 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			return String(executionId);
 		} else {
 			// All other database drivers should create executions and execution-data atomically
-			return await this.manager.transaction(async (transactionManager) => {
+			const em = this.getContextManager();
+			return await em.transaction(async (transactionManager) => {
 				const { identifiers: inserted } = await transactionManager.insert(ExecutionEntity, {
 					...rest,
 					createdAt: new Date(),
@@ -406,8 +409,9 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 	 * Permanently remove a single execution and its binary data.
 	 */
 	async hardDelete(ids: { workflowId: string; executionId: string }) {
+		const em = this.getContextManager();
 		return await Promise.all([
-			this.delete(ids.executionId),
+			em.delete(ExecutionEntity, ids.executionId),
 			this.binaryDataService.deleteMany([ids]),
 		]);
 	}
@@ -456,7 +460,8 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 
 		// All other database drivers should update executions and execution-data atomically
 
-		await this.manager.transaction(async (tx) => {
+		const em = this.getContextManager();
+		await em.transaction(async (tx) => {
 			if (Object.keys(executionInformation).length > 0) {
 				await tx.update(ExecutionEntity, { id: executionId }, executionInformation);
 			}
@@ -513,11 +518,15 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 			workflowId,
 		}));
 
+		const em = this.getContextManager();
 		do {
 			// Delete in batches to avoid "SQLITE_ERROR: Expression tree is too large (maximum depth 1000)" error
 			const batch = ids.splice(0, this.hardDeletionBatchSize);
 			await Promise.all([
-				this.delete(batch.map(({ executionId }) => executionId)),
+				em.delete(
+					ExecutionEntity,
+					batch.map(({ executionId }) => executionId),
+				),
 				this.binaryDataService.deleteMany(batch),
 			]);
 		} while (ids.length > 0);
@@ -568,7 +577,9 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 
 		const [timeBasedWhere, countBasedWhere] = toPrune;
 
-		return await this.createQueryBuilder()
+		const em = this.getContextManager();
+		return await em
+			.createQueryBuilder(ExecutionEntity, 'execution')
 			.update(ExecutionEntity)
 			.set({ deletedAt: new Date() })
 			.where({
@@ -612,7 +623,8 @@ export class ExecutionRepository extends Repository<ExecutionEntity> {
 	}
 
 	async deleteByIds(executionIds: string[]) {
-		return await this.delete({ id: In(executionIds) });
+		const em = this.getContextManager();
+		return await em.delete(ExecutionEntity, { id: In(executionIds) });
 	}
 
 	async getWaitingExecutions() {

@@ -84,7 +84,7 @@ export class ImportService {
 		}
 
 		const insertedWorkflows: IWorkflowBase[] = [];
-		const { manager: dbManager } = this.credentialsRepository;
+		const dbManager = this.credentialsRepository.getManager();
 		await dbManager.transaction(async (tx) => {
 			for (const workflow of workflows) {
 				if (workflow.active) {
@@ -548,7 +548,7 @@ export class ImportService {
 		const isMssql = (this.dataSource.options.type as string) === 'mssql';
 		const limitSyntax = isMssql ? 'TOP 1' : '';
 		const limitSuffix = isMssql ? '' : 'LIMIT 1';
-		
+
 		const dbMigrations = await this.dataSource.query(
 			`SELECT ${limitSyntax} * FROM ${this.dataSource.driver.escape(migrationsTableName)} ORDER BY timestamp DESC ${limitSuffix}`.trim(),
 		);

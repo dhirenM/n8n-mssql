@@ -69,8 +69,21 @@ export class Push extends TypedEmitter<PushEvents> {
 	setupPushServer(restEndpoint: string, server: Server, app: Application) {
 		if (this.useWebSockets) {
 			const wsServer = new WSServer({ noServer: true });
+			// Normalize path: remove double slashes
+			const pushPath = `/${restEndpoint}/push`.replace(/\/+/g, '/');
+
+			this.logger.info(
+				`[Push] Registering WebSocket upgrade handler at: "${pushPath}" (restEndpoint: "${restEndpoint}")`,
+			);
+
 			server.on('upgrade', (request: WebSocketPushRequest, socket, upgradeHead) => {
-				if (parseUrl(request.url).pathname === `/${restEndpoint}/push`) {
+				const requestPath = parseUrl(request.url).pathname;
+
+				this.logger.debug(
+					`[Push] WebSocket upgrade request to: "${requestPath}" (expected: "${pushPath}")`,
+				);
+
+				if (requestPath === pushPath) {
 					wsServer.handleUpgrade(request, socket, upgradeHead, (ws) => {
 						request.ws = ws;
 
@@ -84,6 +97,10 @@ export class Push extends TypedEmitter<PushEvents> {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 						app.handle(request, response);
 					});
+				} else {
+					this.logger.debug(
+						`[Push] WebSocket upgrade request to non-push path: "${requestPath}" (expected: "${pushPath}")`,
+					);
 				}
 			});
 		}
@@ -91,12 +108,22 @@ export class Push extends TypedEmitter<PushEvents> {
 
 	/** Sets up the push endpoint that the frontend connects to. */
 	setupPushHandler(restEndpoint: string, app: Application) {
+		// restEndpoint parameter already includes the base path (e.g., "n8nnet/rest")
+		// Normalize path: remove double slashes and ensure single leading slash
+		const pushPath = `/${restEndpoint}/push`.replace(/\/+/g, '/');
+
+		this.logger.info(
+			`[Push] Registering push handler at: "${pushPath}" (restEndpoint: "${restEndpoint}")`,
+		);
+
 		app.use(
-			`/${restEndpoint}/push`,
+			pushPath,
 
 			this.authService.createAuthMiddleware({ allowSkipMFA: false }),
-			(req: SSEPushRequest | WebSocketPushRequest, res: PushResponse) =>
-				this.handleRequest(req, res),
+			(req: SSEPushRequest | WebSocketPushRequest, res: PushResponse) => {
+				this.logger.debug(`[Push] Incoming request to: ${req.url}`);
+				return this.handleRequest(req, res);
+			},
 		);
 	}
 
