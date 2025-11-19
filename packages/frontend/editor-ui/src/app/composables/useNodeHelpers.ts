@@ -889,13 +889,13 @@ export function useNodeHelpers(opts: { workflowState?: WorkflowState } = {}) {
 	}
 
 	function assignNodeId(node: INodeUi) {
-		const id = window.crypto.randomUUID();
+		const id = crypto.randomUUID();
 		node.id = id;
 		return id;
 	}
 
 	function assignWebhookId(node: INodeUi) {
-		const id = window.crypto.randomUUID();
+		const id = crypto.randomUUID();
 		node.webhookId = id;
 		return id;
 	}

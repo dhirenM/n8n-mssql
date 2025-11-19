@@ -398,11 +398,12 @@ export class WorkflowsController {
 		const forceSave = req.query.forceSave === 'true';
 
 		let updateData = new WorkflowEntity();
-		const { tags, parentFolderId, ...rest } = req.body;
+		let { tags, parentFolderId, ...rest } = req.body;
 
 		// Clean up empty GUID fields before assignment (SQL Server rejects empty strings for GUID columns)
 		if (rest.versionId === '') delete rest.versionId;
 		if (rest.id === '') delete rest.id;
+		if (parentFolderId === '') parentFolderId = undefined;
 
 		Object.assign(updateData, rest);
 

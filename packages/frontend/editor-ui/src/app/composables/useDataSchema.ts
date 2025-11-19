@@ -334,7 +334,7 @@ const emptyItem = (
 	key: RenderEmpty['key'],
 	{ nodeName, level }: { nodeName?: string; level?: number } = {},
 ): RenderEmpty => ({
-	id: `empty-${window.crypto.randomUUID()}`,
+	id: `empty-${crypto.randomUUID()}`,
 	type: 'empty',
 	key,
 	level: level ?? 0,
@@ -342,7 +342,7 @@ const emptyItem = (
 });
 
 const moreFieldsItem = (): RenderIcon => ({
-	id: `moreFields-${window.crypto.randomUUID()}`,
+	id: `moreFields-${crypto.randomUUID()}`,
 	type: 'icon',
 	icon: 'ellipsis',
 	tooltip: useI18n().baseText('dataMapping.schemaView.previewExtraFields'),

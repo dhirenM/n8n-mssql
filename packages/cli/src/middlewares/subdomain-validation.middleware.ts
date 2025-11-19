@@ -26,24 +26,44 @@ export const subdomainValidationMiddleware = async (
 	const logger = Container.get(Logger);
 
 	try {
-		// Skip validation for asset URLs, static content, and public endpoints
-		// Note: These paths work regardless of N8N_PATH base path
+		// Skip validation for static files and assets
+		const urlLower = req.url.toLowerCase();
+		const pathLower = req.path.toLowerCase();
+
+		const isStaticFile =
+			urlLower.endsWith('.svg') ||
+			urlLower.endsWith('.png') ||
+			urlLower.endsWith('.jpg') ||
+			urlLower.endsWith('.jpeg') ||
+			urlLower.endsWith('.gif') ||
+			urlLower.endsWith('.css') ||
+			urlLower.endsWith('.js') ||
+			urlLower.endsWith('.map') ||
+			urlLower.endsWith('.ttf') ||
+			urlLower.endsWith('.woff') ||
+			urlLower.endsWith('.woff2') ||
+			urlLower.endsWith('.eot') ||
+			urlLower.includes('/assets/') ||
+			pathLower.includes('/assets/') ||
+			urlLower.includes('/static/') ||
+			pathLower.includes('/static/') ||
+			urlLower.includes('/icons/') ||
+			pathLower.includes('/icons/') ||
+			urlLower.includes('/node-icon/') ||
+			pathLower.includes('/node-icon/');
+
+		// Skip validation for static files, public endpoints, or already validated requests
 		const shouldSkip =
-			req.url.includes('/assets/') ||
-			req.url.includes('/static/') ||
-			req.url.includes('/node-icon/') ||
-			req.url.includes('/types/') ||
-			req.url.includes('/favicon.ico') ||
-			req.url.includes('/rest/settings') || // Public settings endpoint
-			//req.url.includes('/rest/push') ||         // Push/WebSocket endpoint (handled by push auth)
-			req.headers.upgrade === 'websocket' || // WebSocket upgrade requests
-			(req.url.includes('/rest/login') && req.method === 'POST') || // Username/password login (POST only)
-			req.url.includes('/rest/oauth') || // OAuth endpoints
-			req.url.includes('/rest/forgot-password') || // Password reset
-			req.url.includes('/rest/resolve-signup-token') || // Signup
-			req.url.includes('/healthz') || // Health check
-			req.url.includes('/metrics') || // Metrics endpoint
-			req.dataSource; // Already validated
+			isStaticFile ||
+			req.url.includes('/rest/settings') ||
+			req.headers.upgrade === 'websocket' ||
+			(req.url.includes('/rest/login') && req.method === 'POST') ||
+			req.url.includes('/rest/oauth') ||
+			req.url.includes('/rest/forgot-password') ||
+			req.url.includes('/rest/resolve-signup-token') ||
+			req.url.includes('/healthz') ||
+			req.url.includes('/metrics') ||
+			req.dataSource;
 
 		if (shouldSkip) {
 			logger.debug(

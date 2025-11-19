@@ -73,6 +73,7 @@ import { CreateChatHubTables1760019379982 } from '../common/1760019379982-Create
 import { CreateChatHubAgentTable1760020000000 } from '../common/1760020000000-CreateChatHubAgentTable';
 import { UniqueRoleNames1760020838000 } from '../common/1760020838000-UniqueRoleNames';
 import { CreateWorkflowDependencyTable1760314000000 } from '../common/1760314000000-CreateWorkflowDependencyTable';
+import { ConvertNtextToNvarcharMax1760965143000 } from '../common/1760965143000-ConvertNtextToNvarcharMax';
 
 /**
  * MSSQL Migration List
@@ -147,4 +148,5 @@ export const mssqlMigrations: Migration[] = [
 	CreateChatHubAgentTable1760020000000,
 	UniqueRoleNames1760020838000,
 	CreateWorkflowDependencyTable1760314000000,
+	ConvertNtextToNvarcharMax1760965143000,
 ];

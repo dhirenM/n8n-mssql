@@ -1,5 +1,8 @@
 import { createApp } from 'vue';
 
+// Import polyfills FIRST (before any other imports that might use them)
+import './polyfills';
+
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import '@vue-flow/controls/dist/style.css';

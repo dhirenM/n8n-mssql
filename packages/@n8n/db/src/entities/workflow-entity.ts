@@ -90,11 +90,7 @@ export class WorkflowEntity extends WithTimestampsAndStringId implements IWorkfl
 	@JoinColumn({ referencedColumnName: 'workflow' })
 	statistics: WorkflowStatistics[];
 
-	@Column({
-		type: dbType === 'sqlite' || dbType === 'mssqldb' ? 'text' : 'json',
-		nullable: true,
-		transformer: sqlite.jsonColumn,
-	})
+	@JsonColumn({ nullable: true })
 	pinData?: ISimplifiedPinData;
 
 	@Column({ length: 36 })

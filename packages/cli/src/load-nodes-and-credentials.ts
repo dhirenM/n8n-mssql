@@ -155,8 +155,18 @@ export class LoadNodesAndCredentials {
 		if (!loader) {
 			return undefined;
 		}
-		const pathPrefix = `/icons/${packageName}/`;
-		const filePath = path.resolve(loader.directory, url.substring(pathPrefix.length));
+
+		// Handle both /icons/ and /n8nnet/icons/ (or any base path)
+		// Extract the part after /icons/packageName/
+		const iconsMarker = `/icons/${packageName}/`;
+		const iconsIndex = url.indexOf(iconsMarker);
+
+		if (iconsIndex === -1) {
+			return undefined;
+		}
+
+		const relativePath = url.substring(iconsIndex + iconsMarker.length);
+		const filePath = path.resolve(loader.directory, relativePath);
 
 		return isContainedWithin(loader.directory, filePath) ? filePath : undefined;
 	}

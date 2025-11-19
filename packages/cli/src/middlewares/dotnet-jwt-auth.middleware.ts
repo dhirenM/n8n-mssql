@@ -55,8 +55,38 @@ export const dotnetJwtAuthMiddleware = async (req: Request, res: Response, next:
 			return next();
 		}
 
-		// Skip for WebSocket upgrade requests (push connection)
-		// WebSocket connections are handled by n8n's auth middleware on the push endpoint
+		// Skip for static files and assets
+		const urlLower = req.url.toLowerCase();
+		const pathLower = req.path.toLowerCase();
+
+		const isStaticFile =
+			urlLower.endsWith('.svg') ||
+			urlLower.endsWith('.png') ||
+			urlLower.endsWith('.jpg') ||
+			urlLower.endsWith('.jpeg') ||
+			urlLower.endsWith('.gif') ||
+			urlLower.endsWith('.css') ||
+			urlLower.endsWith('.js') ||
+			urlLower.endsWith('.map') ||
+			urlLower.endsWith('.ttf') ||
+			urlLower.endsWith('.woff') ||
+			urlLower.endsWith('.woff2') ||
+			urlLower.endsWith('.eot') ||
+			urlLower.includes('/assets/') ||
+			pathLower.includes('/assets/') ||
+			urlLower.includes('/static/') ||
+			pathLower.includes('/static/') ||
+			urlLower.includes('/icons/') ||
+			pathLower.includes('/icons/') ||
+			urlLower.includes('/node-icon/') ||
+			pathLower.includes('/node-icon/');
+
+		if (isStaticFile) {
+			logger.debug('.NET JWT: Skipping validation for static file', { path: req.path });
+			return next();
+		}
+
+		// Skip for WebSocket upgrade requests
 		if (req.headers.upgrade === 'websocket') {
 			logger.debug('.NET JWT: Skipping validation for WebSocket/push request');
 			return next();

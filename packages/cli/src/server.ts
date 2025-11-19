@@ -366,10 +366,14 @@ export class Server extends AbstractServer {
 		});
 
 		if (frontendService) {
+			// Support base path for icon routes (e.g., /n8nnet/icons/...)
+			const iconBasePath =
+				this.globalConfig.path === '/' ? '' : this.globalConfig.path.replace(/\/$/, '');
+
 			this.app.use(
 				[
-					'/icons/{@:scope/}:packageName/*path/*file.svg',
-					'/icons/{@:scope/}:packageName/*path/*file.png',
+					`${iconBasePath}/icons/{@:scope/}:packageName/*path/*file.svg`,
+					`${iconBasePath}/icons/{@:scope/}:packageName/*path/*file.png`,
 				],
 				async (req, res) => {
 					// eslint-disable-next-line prefer-const
