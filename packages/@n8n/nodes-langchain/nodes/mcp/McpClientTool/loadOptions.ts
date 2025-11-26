@@ -26,6 +26,7 @@ export async function getTools(this: ILoadOptionsFunctions): Promise<INodeProper
 		headers,
 		name: node.type,
 		version: node.typeVersion,
+		connectionTimeout: 30000, // 30 seconds timeout for loading options
 		onUnauthorized: async (headers) => await tryRefreshOAuth2Token(this, authentication, headers),
 	});
 

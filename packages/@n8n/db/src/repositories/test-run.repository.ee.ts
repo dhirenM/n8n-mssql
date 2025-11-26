@@ -1,6 +1,6 @@
 import { Service } from '@n8n/di';
 import type { EntityManager, FindManyOptions } from '@n8n/typeorm';
-import { DataSource, In, Repository } from '@n8n/typeorm';
+import { DataSource, In } from '@n8n/typeorm';
 import { UnexpectedError, type IDataObject } from 'n8n-workflow';
 
 import { TestRun } from '../entities';
@@ -11,15 +11,16 @@ import type {
 	ListQuery,
 } from '../entities/types-db';
 import { getTestRunFinalResult } from '../utils/get-final-test-result';
+import { BaseRepository } from './base.repository';
 
 export type TestRunSummary = TestRun & {
 	finalResult: TestRunFinalResult | null;
 };
 
 @Service()
-export class TestRunRepository extends Repository<TestRun> {
+export class TestRunRepository extends BaseRepository<TestRun> {
 	constructor(dataSource: DataSource) {
-		super(TestRun, dataSource.manager);
+		super(TestRun, dataSource);
 	}
 
 	async createTestRun(workflowId: string): Promise<TestRun> {
@@ -30,7 +31,7 @@ export class TestRunRepository extends Repository<TestRun> {
 			},
 		});
 
-		return await this.save(testRun);
+		return (await this.save(testRun)) as TestRun;
 	}
 
 	async markAsRunning(id: string) {
@@ -45,7 +46,7 @@ export class TestRunRepository extends Repository<TestRun> {
 	}
 
 	async markAsCancelled(id: string, trx?: EntityManager) {
-		trx = trx ?? this.manager;
+		trx = trx ?? this.getContextManager();
 		return await trx.update(TestRun, id, { status: 'cancelled', completedAt: new Date() });
 	}
 

@@ -25,11 +25,35 @@ import type {
 	McpToolIncludeMode,
 } from './types';
 
-export async function getAllTools(client: Client, cursor?: string): Promise<McpTool[]> {
-	const { tools, nextCursor } = await client.listTools({ cursor });
+/**
+ * Wraps a promise with a timeout
+ */
+function withTimeout<T>(
+	promise: Promise<T>,
+	timeoutMs: number,
+	timeoutMessage: string,
+): Promise<T> {
+	return Promise.race([
+		promise,
+		new Promise<T>((_, reject) => setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs)),
+	]);
+}
+
+export async function getAllTools(
+	client: Client,
+	cursor?: string,
+	timeout = 60000,
+): Promise<McpTool[]> {
+	console.log('[MCP] Requesting tools list...', { cursor, timeout });
+	const { tools, nextCursor } = await withTimeout(
+		client.listTools({ cursor }),
+		timeout,
+		`Timeout: Failed to list tools from MCP server within ${timeout}ms`,
+	);
+	console.log('[MCP] Tools received:', { count: tools.length, hasMore: !!nextCursor });
 
 	if (nextCursor) {
-		return (tools as McpTool[]).concat(await getAllTools(client, nextCursor));
+		return (tools as McpTool[]).concat(await getAllTools(client, nextCursor, timeout));
 	}
 
 	return tools as McpTool[];
@@ -174,7 +198,8 @@ type OnUnauthorizedHandler = (
 
 type ConnectMcpClientError =
 	| { type: 'invalid_url'; error: Error }
-	| { type: 'connection'; error: Error };
+	| { type: 'connection'; error: Error }
+	| { type: 'timeout'; error: Error };
 
 export async function connectMcpClient({
 	headers,
@@ -183,6 +208,7 @@ export async function connectMcpClient({
 	name,
 	version,
 	onUnauthorized,
+	connectionTimeout = 30000,
 }: {
 	serverTransport: McpServerTransport;
 	endpointUrl: string;
@@ -190,23 +216,34 @@ export async function connectMcpClient({
 	name: string;
 	version: number;
 	onUnauthorized?: OnUnauthorizedHandler;
+	connectionTimeout?: number;
 }): Promise<Result<Client, ConnectMcpClientError>> {
+	console.log('[MCP] Connecting to server:', { endpointUrl, serverTransport, connectionTimeout });
 	const endpoint = normalizeAndValidateUrl(endpointUrl);
 
 	if (!endpoint.ok) {
+		console.error('[MCP] Invalid URL:', endpoint.error);
 		return createResultError({ type: 'invalid_url', error: endpoint.error });
 	}
 
 	const client = new Client({ name, version: version.toString() }, { capabilities: { tools: {} } });
 
 	if (serverTransport === 'httpStreamable') {
+		console.log('[MCP] Using httpStreamable transport');
 		try {
 			const transport = new StreamableHTTPClientTransport(endpoint.result, {
 				requestInit: { headers },
 			});
-			await client.connect(transport);
+			console.log('[MCP] Starting connection...');
+			await withTimeout(
+				client.connect(transport),
+				connectionTimeout,
+				`Connection timeout: Failed to connect to MCP server within ${connectionTimeout}ms`,
+			);
+			console.log('[MCP] Connection successful');
 			return createResultOk(client);
 		} catch (error) {
+			console.error('[MCP] Connection error:', error);
 			if (onUnauthorized && isUnauthorizedError(error)) {
 				const newHeaders = await onUnauthorized(headers);
 				if (newHeaders) {
@@ -217,6 +254,7 @@ export async function connectMcpClient({
 						endpointUrl,
 						name,
 						version,
+						connectionTimeout,
 					});
 				}
 			}
@@ -225,6 +263,7 @@ export async function connectMcpClient({
 		}
 	}
 
+	console.log('[MCP] Using SSE transport');
 	try {
 		const sseTransport = new SSEClientTransport(endpoint.result, {
 			eventSourceInit: {
@@ -239,9 +278,16 @@ export async function connectMcpClient({
 			},
 			requestInit: { headers },
 		});
-		await client.connect(sseTransport);
+		console.log('[MCP] Starting SSE connection...');
+		await withTimeout(
+			client.connect(sseTransport),
+			connectionTimeout,
+			`Connection timeout: Failed to connect to MCP server within ${connectionTimeout}ms`,
+		);
+		console.log('[MCP] SSE connection successful');
 		return createResultOk(client);
 	} catch (error) {
+		console.error('[MCP] SSE connection error:', error);
 		if (onUnauthorized && isUnauthorizedError(error)) {
 			const newHeaders = await onUnauthorized(headers);
 			if (newHeaders) {
@@ -252,6 +298,7 @@ export async function connectMcpClient({
 					endpointUrl,
 					name,
 					version,
+					connectionTimeout,
 				});
 			}
 		}
@@ -275,13 +322,19 @@ export async function getAuthHeaders(
 			return { headers: { [header.name]: header.value } };
 		}
 		case 'bearerAuth': {
-			const result = await ctx
-				.getCredentials<{ token: string }>('httpBearerAuth')
-				.catch(() => null);
+			try {
+				const result = await ctx.getCredentials<{ token: string }>('httpBearerAuth');
 
-			if (!result) return {};
+				if (!result || !result.token) {
+					console.error('[MCP] bearerAuth: No token found in credentials');
+					return {};
+				}
 
-			return { headers: { Authorization: `Bearer ${result.token}` } };
+				return { headers: { Authorization: `Bearer ${result.token}` } };
+			} catch (error) {
+				console.error('[MCP] bearerAuth: Failed to get credentials:', error);
+				return {};
+			}
 		}
 		case 'mcpOAuth2Api': {
 			const result = await ctx

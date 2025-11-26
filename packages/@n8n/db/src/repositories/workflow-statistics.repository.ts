@@ -98,19 +98,20 @@ export class WorkflowStatisticsRepository extends Repository<WorkflowStatistics>
 			} else if (dbType === 'mssqldb') {
 				// MSSQL uses MERGE instead of ON CONFLICT/ON DUPLICATE KEY
 				// Uses OUTPUT instead of RETURNING
+				// Note: SQL Server uses @0, @1, @2 parameter placeholders, not ?
 				const queryResult = (await this.query(
 					`MERGE ${escapedTableName} AS target
-					USING (SELECT ? AS name, ? AS workflowId) AS source
-					ON target.name = source.name AND target.workflowId = source.workflowId
-					WHEN MATCHED THEN
-						UPDATE SET 
-							count = target.count + 1,
-							rootCount = target.rootCount + ?,
-							latestEvent = CURRENT_TIMESTAMP
-					WHEN NOT MATCHED THEN
-						INSERT (count, rootCount, name, workflowId, latestEvent)
-						VALUES (1, ?, source.name, source.workflowId, CURRENT_TIMESTAMP)
-					OUTPUT INSERTED.count;`,
+				USING (SELECT @0 AS name, @1 AS workflowId) AS source
+				ON target.name = source.name AND target.workflowId = source.workflowId
+				WHEN MATCHED THEN
+					UPDATE SET 
+						count = target.count + 1,
+						rootCount = target.rootCount + @2,
+						latestEvent = CURRENT_TIMESTAMP
+				WHEN NOT MATCHED THEN
+					INSERT (count, rootCount, name, workflowId, latestEvent)
+					VALUES (1, @3, source.name, source.workflowId, CURRENT_TIMESTAMP)
+				OUTPUT INSERTED.count;`,
 					[eventName, workflowId, rootCountIncrement, rootCountIncrement],
 				)) as Array<{ count: number }>;
 

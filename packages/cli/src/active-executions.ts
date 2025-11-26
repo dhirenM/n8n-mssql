@@ -66,7 +66,10 @@ export class ActiveExecutions {
 				workflowId: executionData.workflowData.id,
 			};
 
-			fullExecutionData.retryOf = executionData.retryOf ?? undefined;
+			// SQL Server requires NULL instead of undefined for nullable GUID fields
+			if (executionData.retryOf) {
+				fullExecutionData.retryOf = executionData.retryOf;
+			}
 
 			const workflowId = executionData.workflowData.id;
 			if (workflowId !== undefined && isWorkflowIdValid(workflowId)) {

@@ -129,7 +129,7 @@ export class InvitationController {
 		invitee.lastName = lastName;
 		invitee.password = await this.passwordUtility.hash(password);
 
-		const updatedUser = await this.userRepository.save(invitee, { transaction: false });
+		const updatedUser = (await this.userRepository.save(invitee, { transaction: false })) as User;
 
 		this.authService.issueCookie(res, updatedUser, false, req.browserId);
 

@@ -1,5 +1,5 @@
 import { LicenseState, Logger } from '@n8n/backend-common';
-import { SettingsRepository, UserRepository } from '@n8n/db';
+import { SettingsRepository, User, UserRepository } from '@n8n/db';
 import { Service } from '@n8n/di';
 import { Cipher } from 'n8n-core';
 import { v4 as uuid } from 'uuid';
@@ -127,7 +127,7 @@ export class MfaService {
 			relations: ['role'],
 		});
 		user.mfaEnabled = true;
-		return await this.userRepository.save(user);
+		return (await this.userRepository.save(user)) as User;
 	}
 
 	async disableMfaWithMfaCode(userId: string, mfaCode: string) {

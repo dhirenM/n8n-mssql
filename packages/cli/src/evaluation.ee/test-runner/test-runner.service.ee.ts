@@ -3,6 +3,7 @@ import { ExecutionsConfig } from '@n8n/config';
 import type { User, TestRun } from '@n8n/db';
 import { TestCaseExecutionRepository, TestRunRepository, WorkflowRepository } from '@n8n/db';
 import { Service } from '@n8n/di';
+import type { EntityManager } from '@n8n/typeorm';
 import { ErrorReporter } from 'n8n-core';
 import {
 	EVALUATION_NODE_TYPE,
@@ -716,7 +717,7 @@ export class TestRunnerService {
 
 			// Mark the test run as completed or cancelled
 			if (abortSignal.aborted) {
-				await dbManager.transaction(async (trx) => {
+				await dbManager.transaction(async (trx: EntityManager) => {
 					await this.testRunRepository.markAsCancelled(testRun.id, trx);
 					await this.testCaseExecutionRepository.markAllPendingAsCancelled(testRun.id, trx);
 				});
@@ -740,7 +741,7 @@ export class TestRunnerService {
 					stoppedOn: e.extra?.executionId,
 				});
 
-				await dbManager.transaction(async (trx) => {
+				await dbManager.transaction(async (trx: EntityManager) => {
 					await this.testRunRepository.markAsCancelled(testRun.id, trx);
 					await this.testCaseExecutionRepository.markAllPendingAsCancelled(testRun.id, trx);
 				});
@@ -805,7 +806,7 @@ export class TestRunnerService {
 			const dbManager = this.testRunRepository.getManager();
 
 			// If there is no abort controller - just mark the test run and all its pending test case executions as cancelled
-			await dbManager.transaction(async (trx) => {
+			await dbManager.transaction(async (trx: EntityManager) => {
 				await this.testRunRepository.markAsCancelled(testRunId, trx);
 				await this.testCaseExecutionRepository.markAllPendingAsCancelled(testRunId, trx);
 			});

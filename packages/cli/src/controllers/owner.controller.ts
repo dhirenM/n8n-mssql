@@ -4,6 +4,7 @@ import {
 	AuthenticatedRequest,
 	GLOBAL_OWNER_ROLE,
 	SettingsRepository,
+	User,
 	UserRepository,
 } from '@n8n/db';
 import { Body, GlobalScope, Post, RestController } from '@n8n/decorators';
@@ -60,7 +61,7 @@ export class OwnerController {
 		// TODO: move XSS validation out into the DTO class
 		await validateEntity(owner);
 
-		owner = await this.userRepository.save(owner, { transaction: false });
+		owner = (await this.userRepository.save(owner, { transaction: false })) as User;
 
 		this.logger.info('Owner was set up successfully');
 

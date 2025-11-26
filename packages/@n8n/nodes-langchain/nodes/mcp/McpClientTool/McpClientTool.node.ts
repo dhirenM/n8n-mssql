@@ -90,6 +90,7 @@ async function connectAndGetTools(
 		headers,
 		name: node.type,
 		version: node.typeVersion,
+		connectionTimeout: 30000, // 30 seconds timeout for connection
 		onUnauthorized: async (headers) =>
 			await tryRefreshOAuth2Token(ctx, config.authentication, headers),
 	});
@@ -386,6 +387,11 @@ export class McpClientTool implements INodeType {
 			switch (error.type) {
 				case 'invalid_url':
 					return setError('Could not connect to your MCP server. The provided URL is invalid.');
+				case 'timeout':
+					return setError(
+						'Connection timeout',
+						'Failed to connect to your MCP server within the timeout period. The server may be down or unreachable.',
+					);
 				case 'connection':
 				default:
 					return setError('Could not connect to your MCP server');

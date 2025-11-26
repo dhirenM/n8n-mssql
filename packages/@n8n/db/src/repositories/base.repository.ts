@@ -251,6 +251,11 @@ export abstract class BaseRepository<Entity extends ObjectLiteral> extends Repos
 		return await em.findOneBy(this.target, where);
 	}
 
+	override async findOneByOrFail(where: any) {
+		const em = this.getContextManager();
+		return await em.findOneByOrFail(this.target, where);
+	}
+
 	override async count(options?: any) {
 		const em = this.getContextManager();
 		return await em.count(this.target, options);
@@ -261,12 +266,18 @@ export abstract class BaseRepository<Entity extends ObjectLiteral> extends Repos
 		return await em.countBy(this.target, where);
 	}
 
-	override async save(entity: any, options?: any) {
+	override async save<T extends Entity>(
+		entity: T | T[],
+		options?: any,
+	): Promise<T | T[]> {
 		const em = this.getContextManager();
 		return await em.save(entity, options);
 	}
 
-	override async remove(entity: any, options?: any) {
+	override async remove<T extends Entity>(
+		entity: T | T[],
+		options?: any,
+	): Promise<T | T[]> {
 		const em = this.getContextManager();
 		return await em.remove(entity, options);
 	}

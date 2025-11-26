@@ -7,6 +7,7 @@ import type { MigrationContext, ReversibleMigration } from '../migration-types';
  * nvarchar(max) is the modern replacement that handles large text data better.
  *
  * This migration converts all ntext columns to nvarchar(max) for:
+ * - credentials_entity (data)
  * - workflow_entity (nodes, connections, settings, staticData, meta, pinData)
  * - workflow_history (nodes, connections)
  * - execution_data (workflowData)
@@ -28,6 +29,9 @@ export class ConvertNtextToNvarcharMax1760965143000 implements ReversibleMigrati
 
 		// List of tables and their ntext columns to convert
 		const conversions = [
+			// credentials_entity
+			{ table: `${tablePrefix}credentials_entity`, column: 'data' },
+
 			// workflow_entity
 			{ table: `${tablePrefix}workflow_entity`, column: 'nodes' },
 			{ table: `${tablePrefix}workflow_entity`, column: 'connections' },
@@ -107,6 +111,9 @@ export class ConvertNtextToNvarcharMax1760965143000 implements ReversibleMigrati
 		// Reverse: convert nvarchar(max) back to ntext
 		// Note: This is generally not recommended as ntext is deprecated
 		const conversions = [
+			// credentials_entity
+			{ table: `${tablePrefix}credentials_entity`, column: 'data' },
+
 			// workflow_entity
 			{ table: `${tablePrefix}workflow_entity`, column: 'nodes' },
 			{ table: `${tablePrefix}workflow_entity`, column: 'connections' },

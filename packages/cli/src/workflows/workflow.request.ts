@@ -26,6 +26,7 @@ export declare namespace WorkflowRequest {
 		projectId: string;
 		parentFolderId?: string;
 		uiContext?: string;
+		versionId: string; // sent by client but server always regenerates it
 	}>;
 
 	type ManualRunPayload = {

@@ -292,6 +292,27 @@ describe('utils', () => {
 				expect(onUnauthorized).toHaveBeenCalledTimes(1);
 				expect(onUnauthorized).toHaveBeenCalledWith({ Authorization: 'Bearer old-token' });
 			});
+
+			it('should timeout if connection takes too long', async () => {
+				mockClient.connect.mockImplementation(
+					() => new Promise((resolve) => setTimeout(resolve, 5000)),
+				);
+
+				const result = await connectMcpClient({
+					serverTransport: transport,
+					endpointUrl: 'https://example.com',
+					headers: { Authorization: 'Bearer token' },
+					name: 'test-client',
+					version: 1,
+					connectionTimeout: 100, // 100ms timeout
+				});
+
+				expect(result.ok).toBe(false);
+				if (!result.ok) {
+					expect(result.error.type).toBe('connection');
+					expect(result.error.error.message).toContain('Connection timeout');
+				}
+			});
 		});
 	});
 });

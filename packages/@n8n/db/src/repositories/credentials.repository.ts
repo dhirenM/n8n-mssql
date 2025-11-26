@@ -1,3 +1,5 @@
+import { GlobalConfig } from '@n8n/config';
+import { Container } from '@n8n/di';
 import { Service } from '@n8n/di';
 import { DataSource, In, Like } from '@n8n/typeorm';
 import type { FindManyOptions } from '@n8n/typeorm';
@@ -11,6 +13,70 @@ import { BaseRepository } from './base.repository';
 export class CredentialsRepository extends BaseRepository<CredentialsEntity> {
 	constructor(dataSource: DataSource) {
 		super(CredentialsEntity, dataSource);
+	}
+
+	/**
+	 * Override update to handle nvarchar(MAX) correctly for SQL Server
+	 * TypeORM may not properly handle nvarchar(MAX) parameters, so we use raw SQL for SQL Server
+	 * when updating the data field to ensure the full encrypted credential data is saved
+	 */
+	override async update(
+		criteria: string | Partial<CredentialsEntity>,
+		partialEntity: Partial<CredentialsEntity>,
+	): Promise<any> {
+		const dbType = Container.get(GlobalConfig).database.type;
+
+		// For SQL Server, use raw query to ensure nvarchar(MAX) is handled correctly
+		// This is necessary because TypeORM may truncate data when using parameterized queries
+		// with nvarchar columns that don't explicitly specify MAX length
+		if (dbType === 'mssqldb' && 'data' in partialEntity && partialEntity.data !== undefined) {
+			const em = this.getContextManager();
+			const tableName = em.getRepository(CredentialsEntity).metadata.tableName;
+			const schema = em.getRepository(CredentialsEntity).metadata.schema;
+			const fullTableName = schema ? `[${schema}].[${tableName}]` : `[${tableName}]`;
+
+			// Build WHERE clause
+			let whereClause = '';
+			const params: any[] = [];
+			if (typeof criteria === 'string') {
+				whereClause = '[id] = @0';
+				params.push(criteria);
+			} else {
+				const conditions: string[] = [];
+				let paramIndex = 0;
+				for (const [key, value] of Object.entries(criteria)) {
+					conditions.push(`[${key}] = @${paramIndex}`);
+					params.push(value);
+					paramIndex++;
+				}
+				whereClause = conditions.join(' AND ');
+			}
+
+			// Build SET clause with direct value embedding for data field
+			// We cannot use parameterized queries for NVARCHAR(MAX) as they truncate at ~500 chars
+			// Instead, we use quoted string literals for the data field
+			const setClauses: string[] = [];
+			let setParamIndex = params.length;
+			for (const [key, value] of Object.entries(partialEntity)) {
+				if (key === 'data') {
+					// Use quoted string literal instead of parameter to avoid truncation
+					// Escape single quotes by doubling them
+					const escapedValue = String(value).replace(/'/g, "''");
+					setClauses.push(`[data] = N'${escapedValue}'`);
+				} else {
+					setClauses.push(`[${key}] = @${setParamIndex}`);
+					params.push(value);
+					setParamIndex++;
+				}
+			}
+
+			const sql = `UPDATE ${fullTableName} SET ${setClauses.join(', ')} WHERE ${whereClause}`;
+			await em.query(sql, params);
+			return { affected: 1 };
+		}
+
+		// For other databases, use standard TypeORM update
+		return await super.update(criteria, partialEntity);
 	}
 
 	async findStartingWith(credentialName: string) {

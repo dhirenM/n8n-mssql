@@ -61,6 +61,27 @@ Write-Host "  N8N_SKIP_MIGRATIONS = $env:N8N_SKIP_MIGRATIONS" -ForegroundColor W
 Write-Host ""
 
 # ============================================================
+# Kill processes using port 5678
+# ============================================================
+Write-Host "Checking port 5678..." -ForegroundColor Yellow
+$connections = Get-NetTCPConnection -LocalPort 5678 -ErrorAction SilentlyContinue; 
+if ($connections) { $processIds = $connections | Select-Object -ExpandProperty OwningProcess -Unique; 
+foreach ($processId in $processIds) { 
+    Write-Host "Killing process: $processId";
+    Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue };
+    Start-Sleep -Seconds 3; $check = Get-NetTCPConnection -LocalPort 5678 -ErrorAction SilentlyContinue;
+    if ($check) {
+        Write-Host "⚠️ Port may still be closing..."
+    } else { 
+        Write-Host "✅ Port 5678 is now free!"
+    }
+} else { 
+    Write-Host "ℹ️ Port 5678 is already free" 
+}
+
+Start-Sleep -Seconds 3;
+
+# ============================================================
 # Start n8n
 # ============================================================
 Write-Host "========================================" -ForegroundColor Cyan

@@ -1,9 +1,14 @@
+import { GlobalConfig } from '@n8n/config';
+import { Container } from '@n8n/di';
 import { Column, Entity, Index, OneToMany } from '@n8n/typeorm';
 import { IsObject, IsString, Length } from 'class-validator';
 
 import { WithTimestampsAndStringId } from './abstract-entity';
 import type { SharedCredentials } from './shared-credentials';
 import type { ICredentialsDb } from './types-db';
+
+// Get database type to conditionally set column type for SQL Server
+const dbType = Container.get(GlobalConfig).database.type;
 
 @Entity()
 export class CredentialsEntity extends WithTimestampsAndStringId implements ICredentialsDb {
@@ -14,7 +19,10 @@ export class CredentialsEntity extends WithTimestampsAndStringId implements ICre
 	})
 	name: string;
 
-	@Column('text')
+	@Column({
+		type: dbType === 'mssqldb' ? 'nvarchar' : 'text',
+		length: dbType === 'mssqldb' ? 'MAX' : undefined,
+	})
 	@IsObject()
 	data: string;
 

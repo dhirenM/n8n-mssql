@@ -100,7 +100,7 @@ export async function setWorkflowAsInactive(workflowId: WorkflowId) {
 }
 
 export async function deleteWorkflow(workflow: WorkflowEntity): Promise<WorkflowEntity> {
-	return await Container.get(WorkflowRepository).remove(workflow);
+	return (await Container.get(WorkflowRepository).remove(workflow)) as WorkflowEntity;
 }
 
 export async function updateWorkflow(existingWorkflow: WorkflowEntity, updateData: WorkflowEntity) {

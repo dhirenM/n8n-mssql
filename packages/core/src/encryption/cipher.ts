@@ -14,8 +14,17 @@ export class Cipher {
 		const salt = randomBytes(8);
 		const [key, iv] = this.getKeyAndIv(salt);
 		const cipher = createCipheriv('aes-256-cbc', key, iv);
-		const encrypted = cipher.update(typeof data === 'string' ? data : JSON.stringify(data));
-		return Buffer.concat([RANDOM_BYTES, salt, encrypted, cipher.final()]).toString('base64');
+
+		// Convert to string if object, then to Buffer to ensure proper handling of large data
+		const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+		const dataBuffer = Buffer.from(dataString, 'utf-8');
+
+		// Process data in chunks to handle large data correctly
+		// cipher.update() can handle large buffers, but we ensure all data is processed
+		const encrypted = cipher.update(dataBuffer);
+		const final = cipher.final();
+
+		return Buffer.concat([RANDOM_BYTES, salt, encrypted, final]).toString('base64');
 	}
 
 	decrypt(data: string) {

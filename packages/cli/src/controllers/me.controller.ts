@@ -219,7 +219,7 @@ export class MeController {
 
 		user.password = await this.passwordUtility.hash(newPassword);
 
-		const updatedUser = await this.userRepository.save(user, { transaction: false });
+		const updatedUser = (await this.userRepository.save(user, { transaction: false })) as User;
 		this.logger.info('Password updated successfully', { userId: user.id });
 
 		this.authService.issueCookie(res, updatedUser, req.authInfo?.usedMfa ?? false, req.browserId);
@@ -259,8 +259,8 @@ export class MeController {
 		await this.userRepository.save(
 			{
 				id: req.user.id,
-				personalizationAnswers: validatedAnswers,
-			},
+				personalizationAnswers: validatedAnswers as any,
+			} as User,
 			{ transaction: false },
 		);
 

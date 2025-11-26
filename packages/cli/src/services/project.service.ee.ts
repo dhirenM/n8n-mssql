@@ -344,13 +344,14 @@ export class ProjectService {
 			throw new ForbiddenError("Can't add a personalOwner to a team project.");
 		}
 
-		await this.projectRelationRepository.save(
-			relations.map((relation) => ({
+		const relationEntities = relations.map((relation) =>
+			this.projectRelationRepository.create({
 				projectId,
 				userId: relation.userId,
 				role: { slug: relation.role },
-			})),
+			}),
 		);
+		await this.projectRelationRepository.save(relationEntities);
 	}
 
 	/**

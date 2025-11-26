@@ -106,7 +106,7 @@ export async function removeCredential(
 		credentialType: credentials.type,
 		credentialId: credentials.id,
 	});
-	return await Container.get(CredentialsRepository).remove(credentials);
+	return (await Container.get(CredentialsRepository).remove(credentials)) as ICredentialsDb;
 }
 
 export async function encryptCredential(credential: CredentialsEntity): Promise<ICredentialsDb> {

@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
-import type { CredentialsEntity, ICredentialsDb } from '@n8n/db';
+import type { ICredentialsDb } from '@n8n/db';
+import { CredentialsEntity } from '@n8n/db';
 import {
 	CredentialsRepository,
 	GLOBAL_ADMIN_ROLE,

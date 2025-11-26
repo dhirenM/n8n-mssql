@@ -360,11 +360,23 @@ export class ExecutionRepository extends BaseRepository<ExecutionEntity> {
 		const workflowData = { connections, nodes, name, settings, id: currentWorkflow.id };
 		const data = stringify(dataObj);
 
+		// Normalize undefined values to null for nullable string fields (required for SQL Server)
+		// SQL Server parameter validation fails if nullable string fields are undefined instead of null
 		const { type: dbType, sqlite: sqliteConfig } = this.globalConfig.database;
+		const normalizedRest = {
+			...rest,
+			retryOf: rest.retryOf ?? null,
+			retrySuccessId: rest.retrySuccessId ?? null,
+			workflowId: rest.workflowId ?? null,
+		} as typeof rest;
+
 		if (dbType === 'sqlite' && sqliteConfig.poolSize === 0) {
 			// TODO: Delete this block of code once the sqlite legacy (non-pooling) driver is dropped.
 			// In the non-pooling sqlite driver we can't use transactions, because that creates nested transactions under highly concurrent loads, leading to errors in the database
-			const { identifiers: inserted } = await this.insert({ ...rest, createdAt: new Date() });
+			const { identifiers: inserted } = await this.insert({
+				...normalizedRest,
+				createdAt: new Date(),
+			});
 			const { id: executionId } = inserted[0] as { id: string };
 			await this.executionDataRepository.insert({ executionId, workflowData, data });
 			return String(executionId);
@@ -373,15 +385,19 @@ export class ExecutionRepository extends BaseRepository<ExecutionEntity> {
 			const em = this.getContextManager();
 			return await em.transaction(async (transactionManager) => {
 				const { identifiers: inserted } = await transactionManager.insert(ExecutionEntity, {
-					...rest,
+					...normalizedRest,
 					createdAt: new Date(),
-				});
-				const { id: executionId } = inserted[0] as { id: string };
+				} as any);
+				// SQL Server returns numeric id for INT IDENTITY columns, must convert to string
+				const rawId = inserted[0] as { id: string | number };
+				const executionId = String(rawId.id);
+				// Ensure executionId is explicitly a string to avoid SQL Server parameter validation errors
+				// The idStringifier transformer expects a string input, which it converts to number for storage
 				await this.executionDataRepository.createExecutionDataForExecution(
-					{ executionId, workflowData, data },
+					{ executionId: String(executionId), workflowData, data },
 					transactionManager,
 				);
-				return String(executionId);
+				return executionId;
 			});
 		}
 	}
@@ -441,14 +457,27 @@ export class ExecutionRepository extends BaseRepository<ExecutionEntity> {
 		if (workflowData) executionData.workflowData = workflowData;
 		if (data) executionData.data = stringify(data);
 
+		// Normalize undefined values to null for nullable string fields (required for SQL Server)
+		// SQL Server parameter validation fails if nullable string fields are undefined instead of null
+		const normalizedExecutionInformation = { ...executionInformation } as any;
+		if ('retryOf' in executionInformation) {
+			normalizedExecutionInformation.retryOf = executionInformation.retryOf ?? null;
+		}
+		if ('retrySuccessId' in executionInformation) {
+			normalizedExecutionInformation.retrySuccessId = executionInformation.retrySuccessId ?? null;
+		}
+		if ('workflowId' in executionInformation) {
+			normalizedExecutionInformation.workflowId = executionInformation.workflowId ?? null;
+		}
+
 		const { type: dbType, sqlite: sqliteConfig } = this.globalConfig.database;
 
 		if (dbType === 'sqlite' && sqliteConfig.poolSize === 0) {
 			// TODO: Delete this block of code once the sqlite legacy (non-pooling) driver is dropped.
 			// In the non-pooling sqlite driver we can't use transactions, because that creates nested transactions under highly concurrent loads, leading to errors in the database
 
-			if (Object.keys(executionInformation).length > 0) {
-				await this.update({ id: executionId }, executionInformation);
+			if (Object.keys(normalizedExecutionInformation).length > 0) {
+				await this.update({ id: executionId }, normalizedExecutionInformation);
 			}
 
 			if (Object.keys(executionData).length > 0) {
@@ -462,8 +491,8 @@ export class ExecutionRepository extends BaseRepository<ExecutionEntity> {
 
 		const em = this.getContextManager();
 		await em.transaction(async (tx) => {
-			if (Object.keys(executionInformation).length > 0) {
-				await tx.update(ExecutionEntity, { id: executionId }, executionInformation);
+			if (Object.keys(normalizedExecutionInformation).length > 0) {
+				await tx.update(ExecutionEntity, { id: executionId }, normalizedExecutionInformation);
 			}
 
 			if (Object.keys(executionData).length > 0) {

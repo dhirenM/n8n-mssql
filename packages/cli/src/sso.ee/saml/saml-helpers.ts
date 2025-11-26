@@ -117,7 +117,9 @@ export async function updateUserFromSamlAttributes(
 	await Container.get(AuthIdentityRepository).save(samlAuthIdentity, { transaction: false });
 	user.firstName = attributes.firstName;
 	user.lastName = attributes.lastName;
-	const resultUser = await Container.get(UserRepository).save(user, { transaction: false });
+	const resultUser = (await Container.get(UserRepository).save(user, {
+		transaction: false,
+	})) as User;
 	if (!resultUser) throw new AuthError('Could not update User');
 	const userWithRole = await Container.get(UserRepository).findOne({
 		where: { id: resultUser.id },

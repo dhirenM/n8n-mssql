@@ -217,6 +217,11 @@ export class License implements LicenseProvider {
 	}
 
 	isLicensed(feature: BooleanLicenseFeature) {
+		// Multi-tenant mode: Enable all features without license restrictions
+		if (process.env.USE_MULTITENANT === 'true') {
+			return true;
+		}
+		// Native n8n: Check actual license
 		return this.manager?.hasFeatureEnabled(feature) ?? false;
 	}
 
@@ -383,31 +388,51 @@ export class License implements LicenseProvider {
 
 	/** @deprecated Use `LicenseState` instead. */
 	getUsersLimit() {
+		if (process.env.USE_MULTITENANT === 'true') {
+			return UNLIMITED_LICENSE_QUOTA;
+		}
 		return this.getValue(LICENSE_QUOTAS.USERS_LIMIT) ?? UNLIMITED_LICENSE_QUOTA;
 	}
 
 	/** @deprecated Use `LicenseState` instead. */
 	getTriggerLimit() {
+		if (process.env.USE_MULTITENANT === 'true') {
+			return UNLIMITED_LICENSE_QUOTA;
+		}
 		return this.getValue(LICENSE_QUOTAS.TRIGGER_LIMIT) ?? UNLIMITED_LICENSE_QUOTA;
 	}
 
 	/** @deprecated Use `LicenseState` instead. */
 	getVariablesLimit() {
+		if (process.env.USE_MULTITENANT === 'true') {
+			return UNLIMITED_LICENSE_QUOTA;
+		}
 		return this.getValue(LICENSE_QUOTAS.VARIABLES_LIMIT) ?? UNLIMITED_LICENSE_QUOTA;
 	}
 
 	/** @deprecated Use `LicenseState` instead. */
 	getAiCredits() {
+		if (process.env.USE_MULTITENANT === 'true') {
+			return UNLIMITED_LICENSE_QUOTA; // Unlimited AI credits
+		}
 		return this.getValue(LICENSE_QUOTAS.AI_CREDITS) ?? 0;
 	}
 
 	/** @deprecated Use `LicenseState` instead. */
 	getWorkflowHistoryPruneLimit() {
+		// For multi-tenant setup: return unlimited to hide license upgrade messages
+		// For native n8n: use normal license check
+		if (process.env.USE_MULTITENANT === 'true') {
+			return UNLIMITED_LICENSE_QUOTA;
+		}
 		return this.getValue(LICENSE_QUOTAS.WORKFLOW_HISTORY_PRUNE_LIMIT) ?? UNLIMITED_LICENSE_QUOTA;
 	}
 
 	/** @deprecated Use `LicenseState` instead. */
 	getTeamProjectLimit() {
+		if (process.env.USE_MULTITENANT === 'true') {
+			return UNLIMITED_LICENSE_QUOTA;
+		}
 		return this.getValue(LICENSE_QUOTAS.TEAM_PROJECT_LIMIT) ?? 0;
 	}
 

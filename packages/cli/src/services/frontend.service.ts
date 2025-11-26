@@ -427,7 +427,7 @@ export class FrontendService {
 		if (this.globalConfig.workflowHistory.enabled && this.license.isWorkflowHistoryLicensed()) {
 			Object.assign(this.settings.workflowHistory, {
 				pruneTime: getWorkflowHistoryPruneTime(),
-				licensePruneTime: -1, // Disabled: Always set to -1 to hide upgrade message
+				licensePruneTime: getWorkflowHistoryLicensePruneTime(), // Disabled: Always set to -1 to hide upgrade message
 			});
 		}
 

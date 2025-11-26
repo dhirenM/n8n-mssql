@@ -36,7 +36,7 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({ id: userId });
 
 		if (user) {
-			await this.userRepository.save({ ...user, ...data }, { transaction: true });
+			await this.userRepository.save({ ...user, ...data } as User, { transaction: true });
 		}
 
 		return;

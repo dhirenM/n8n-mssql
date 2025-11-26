@@ -1157,6 +1157,12 @@ export class SourceControlImportService {
 				: fallbackProject;
 		}
 
+		// TypeScript needs this assertion because it can't infer that targetOwnerProject is always defined after the if block
+		// (fallbackProject is always provided, and createTeamProject throws on failure)
+		if (!targetOwnerProject) {
+			throw new Error('Failed to determine target owner project');
+		}
+
 		const trx = this.workflowRepository.manager;
 
 		// remove old ownership if it changed
@@ -1203,13 +1209,13 @@ export class SourceControlImportService {
 		let teamProject: Project | null = null;
 
 		try {
-			teamProject = await this.projectRepository.save(
+			teamProject = (await this.projectRepository.save(
 				this.projectRepository.create({
 					id: owner.teamId,
 					name: owner.teamName,
 					type: 'team',
 				}),
-			);
+			)) as Project;
 		} catch (error) {
 			// Workaround to handle the race condition where another worker created the project
 			// between our check and insert

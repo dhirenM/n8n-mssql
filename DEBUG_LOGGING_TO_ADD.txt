@@ -1,0 +1,27 @@
+// Add this to credentials.controller.ts to log what data is being received
+
+// Around line 234, ADD LOGGING:
+console.log('=== CREDENTIAL UPDATE DEBUG ===');
+console.log('Body data received from client:', JSON.stringify(req.body.data, null, 2));
+console.log('Body data.token length:', req.body.data?.token?.length);
+console.log('Body data.token preview:', req.body.data?.token?.substring(0, 100));
+
+const preparedCredentialData = await this.credentialsService.prepareUpdateData(
+    req.body,
+    decryptedData,
+);
+
+console.log('After prepareUpdateData - data.token length:', preparedCredentialData.data?.token?.length);
+console.log('After prepareUpdateData - data.token preview:', preparedCredentialData.data?.token?.substring(0, 100));
+
+// Then encrypt
+const newCredentialData = this.credentialsService.createEncryptedData({
+    id: credential.id,
+    name: preparedCredentialData.name,
+    type: preparedCredentialData.type,
+    data: preparedCredentialData.data as unknown as ICredentialDataDecryptedObject,
+});
+
+console.log('After createEncryptedData - encrypted data length:', newCredentialData.data?.length);
+console.log('=== END DEBUG ===');
+
